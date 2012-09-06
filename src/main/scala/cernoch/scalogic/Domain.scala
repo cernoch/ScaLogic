@@ -10,7 +10,7 @@ abstract sealed class Domain[+T]
   def valueOf(s:String) : T
   
   override def hashCode() = name.hashCode()
-  override def toString() = (if (isKey) "@" else "") + name
+  override def toString = (if (isKey) "@" else "") + name
 }
 
 
@@ -19,7 +19,7 @@ class DecDom(name:String) extends Domain[BigDecimal](name, false) {
     case "" => null
     case _ => BigDecimal(s)
   }
-  override def toString() = super.toString() + ":dec";
+  override def toString = super.toString() + ":dec";
   override def equals(o: Any) =
     o.isInstanceOf[DecDom] && name.equals(o.asInstanceOf[DecDom].name)
 }
@@ -35,7 +35,7 @@ class NumDom(name:String, isKey:Boolean) extends Domain[BigInt](name, isKey) {
     case "" => null
     case _ => BigInt(s)
   }
-  override def toString() = super.toString() + ":int";
+  override def toString = super.toString() + ":int";
   override def equals(o: Any) =
     o.isInstanceOf[NumDom] && name.equals(o.asInstanceOf[NumDom].name)
 }
@@ -61,7 +61,7 @@ class CatDom(name: String, isKey: Boolean,
     }
   }
   
-  override def toString() = {
+  override def toString = {
     super.toString() + ":cat" + " [" +
       allowed.map("\"" + _ + "\"").mkString(", ") + "]"
   } 
@@ -86,15 +86,14 @@ import scala.util.parsing.combinator._
 object Domain {
   
   def apply(line: String) : Domain[_] = {
-    val g = new DomGrammar
-    g.parse(g.line, line) match {
-      case g.Success(r,_) => r.asInstanceOf[Domain[_]]
+    DomGrammar.parse(DomGrammar.line, line) match {
+      case DomGrammar.Success(r,_) => r.asInstanceOf[Domain[_]]
       case x => throw new SyntaxError(
-          "Unknown syntax error: " + x)
+          "Unknown syntax error.\n" + x)
     }
   }
   
-  class DomGrammar extends JavaTokenParsers {
+  object DomGrammar extends JavaTokenParsers {
 
     def line = namePart ~ tipe ~ opt(allowed) <~ opt(comment) <~ " *$".r ^^ {
       case token ~ name ~ tipe ~ allowed => tipe match {
