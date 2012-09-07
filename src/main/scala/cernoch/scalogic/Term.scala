@@ -171,7 +171,7 @@ abstract sealed class Val[+T]
   
   def get: T
 
-  override def toString = {if (get == null) "null" else get.toString}
+  override def toString = {if (get == null) "null" else get.toString} + dom.toString
   override def hashCode = (if (get == null) 0 else get.hashCode) + 7 * dom.hashCode
   override def equals(o:Any) = o match {
     case Val(oVal, oDom) => get == oVal && dom == oDom
