@@ -10,6 +10,19 @@ class Clause
 
   def vars = Term.vars(head.args) ++
     body.foldLeft( List[Var[Term]]() ){ (a,b) => Term.vars(b.args) ++ a }
+  
+  override def toString
+  = head.toString +
+    ( if (body.isEmpty) ""
+      else " <- " + body.reduceLeft(_ + ", " + _)
+    ) + "."
+
+  override def hashCode = head.hashCode + 3 * body.hashCode
+  override def equals(o:Any) = o match {
+    case Clause(oHed,oBdy) => (head == oHed) && (body == oBdy)
+    case r:AnyRef => this.eq(r)
+    case _ => false
+  }
 }
 
 object Clause {
@@ -19,11 +32,8 @@ object Clause {
     (c:Clause[H,T]) = Some((c.head, c.body))
 }
 
-// TODO: Rename to BLC
 class BLC[+H<:Atom[Term]](head:H)
 	extends Clause[H,Iterable[Nothing]](head, List()) {
-
-  override def toString = head.toString() + "."
 
   override def hashCode = head.hashCode
   override def equals(o:Any) = o match {
