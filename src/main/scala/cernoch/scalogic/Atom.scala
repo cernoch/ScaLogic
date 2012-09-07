@@ -14,15 +14,11 @@ object Dict {
       case last :: Nil => Map(last -> head)
       case elem :: next :: tail => internal(head, next :: tail) + (elem -> next) 
     }
-    internal(l.head, l)
-  }
-  
-  def main(args:Array[String]) : Unit = {
-    val l = List(1,2,3,4,5)
-    println(l)
-    
-    val d = Dict.fromList(l)
-    println(d)
+
+    l match {
+      case Nil => throw new NoSuchElementException("List must have at least 1 value")
+      case h :: _ => internal(h,l)
+    }
   }
 }
 
