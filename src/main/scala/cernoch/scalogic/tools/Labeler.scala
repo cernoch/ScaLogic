@@ -3,7 +3,6 @@ package cernoch.scalogic.tools
 import scala.collection.IndexedSeqOptimized
 import scala.collection.mutable.ArraySeq
 import scala.collection.immutable.HashMap
-import scala.collection.IterableView
 
 class Labeler[A,L](f: A => L) extends Function[A,L] { self =>
 
@@ -74,14 +73,4 @@ object NameGen {
       case false => throw new StackOverflowError("The iterator is too small")
     }
   }.f
-}
-
-object VarNameIterTest { 
-  
-  def main(args:Array[String]) : Unit = {
-    val x = new Labeler[Int,String](NameGen.ALPHANUM)
-    val y = (1 to 1000).map(i => (i,x.get(i)))
-    y.foreach(i => {val (a,b) = i; println(a+": "+b)})
-  }
-  
 }
