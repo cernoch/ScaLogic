@@ -14,12 +14,12 @@ class Clause
   override def toString
   = head.toString +
     ( if (body.isEmpty) ""
-      else " <- " + body.reduceLeft(_ + ", " + _)
+      else " <- " + body.map{_.toString}.reduceLeft{_ + ", " + _}
     ) + "."
 
   override def hashCode = head.hashCode + 3 * body.hashCode
   override def equals(o:Any) = o match {
-    case Clause(oHed,oBdy) => (head == oHed) && (body == oBdy)
+    case c:Clause[_,_] => (head == c.head) && (body == c.body)
     case r:AnyRef => this.eq(r)
     case _ => false
   }
@@ -37,7 +37,7 @@ class BLC[+H<:Atom[Term]](head:H)
 
   override def hashCode = head.hashCode
   override def equals(o:Any) = o match {
-    case BLC(oHed) => oHed == head
+    case c:BLC[_] => head == c.head
     case r:AnyRef => this.eq(r)
     case _ => false
   }  

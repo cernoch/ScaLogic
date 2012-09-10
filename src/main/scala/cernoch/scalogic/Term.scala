@@ -13,20 +13,21 @@ abstract sealed class Term(val dom:Domain[_]) {
 
     case _:Val[_] => this
 
-    case w:Var[T] => if (u == this) v else this
+    case w:Var[Term] => if (u == this) v else this
 
-    case Fun(name,args,dom) => {
-      val uAr = Term.subst(args, u, v)
-      if (uAr.eq(args)) this else new Fun(name, uAr, dom)
+    case f:Fun[Term] => {
+      val uAr = Term.subst(f.args, u, v)
+      if (uAr.eq(f.args))
+        this else new Fun(f.name, uAr, f.dom)
     }
   }
   
   def matching(dictionary: Map[Term,Term]) : Term = {
     dictionary.get(this).getOrElse{ this match {
-      case Fun(name,args,dom) =>
-        new Fun( name,
-          args.map{_.matching(dictionary)}.toList,
-          dom)
+      case f:Fun[Term] =>
+        new Fun(f.name, f.args.map {
+            _.matching(dictionary)
+          }.toList, f.dom)
       case x => x      
     }}
   }
@@ -39,16 +40,16 @@ abstract sealed class Term(val dom:Domain[_]) {
   }
 
   def vars = this match {
-    case   Val(_,_)   => List()
-    case v@Var(_)     => List(v)
-    case f@Fun(_,_,_) => Term.vars(f.args)
+    case _:Val[_] => List()
+    case v:Var[Term] => List(v)
+    case f:Fun[Term] => Term.vars(f.args)
   }
 
   override def toString = toString(Var.globalNames)
   def toString(names: Labeler[Var[_],String]) : String = this match {
-    case l@Val(_,_) => l.toString
-    case r@Var( _ ) => names(r)
-    case Fun(name,args,dom) => name + args.mkString("(", ",", ")")
+    case l:Val[_] => l.toString
+    case r:Var[_] => names(r)
+    case f:Fun[_] => f.name + f.args.mkString("(", ",", ")")
     case _ => super.toString
   }
 }
@@ -146,10 +147,10 @@ final class Fun[+S<:Term]
     + 31 * dom.hashCode
     
   override def equals(o:Any) = o match {
-    case Fun(oName,oArgs,oDom) =>
-      name == oName &&
-      args == oArgs &&
-       dom == oDom
+    case f:Fun[_] =>
+      name == f.name &&
+      args == f.args &&
+       dom == f.dom
     case _ => false
   }
 }
@@ -174,7 +175,7 @@ abstract sealed class Val[+T]
   override def toString = {if (get == null) "null" else get.toString} + dom.toString
   override def hashCode = (if (get == null) 0 else get.hashCode) + 7 * dom.hashCode
   override def equals(o:Any) = o match {
-    case Val(oVal, oDom) => get == oVal && dom == oDom
+    case v:Val[_] => get == v.get && dom == v.dom
     case _ => false
   }
 }

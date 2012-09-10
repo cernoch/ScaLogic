@@ -50,7 +50,7 @@ class AtomTest extends Specification {
 
   "Unification" should {
     "work and ignore occurs check" in {
-      axyz unify ayz0p1 must_== Map(x->y, y->z, z->n1)
+      axyz unify ayz0p1 must_== Some(Map(x->y, y->z, z->n1))
     }
   }
 

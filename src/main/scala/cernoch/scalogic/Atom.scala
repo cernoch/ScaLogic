@@ -106,7 +106,7 @@ class BiasAtom[+S<:Term](
       for (tuple <- mode) {
         val (mv,mi) = tuple
         if (mv == u) {
-          if (v.isInstanceOf[Var[Term]])
+          if (v.isInstanceOf[Var[_]])
             qMod = qMod + (v.asInstanceOf[Var[Term]] -> mi)
         } else
           qMod = qMod + tuple
