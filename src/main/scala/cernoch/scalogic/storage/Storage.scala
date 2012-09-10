@@ -12,17 +12,17 @@ trait Dumpable
 
 trait Queriable
     [H<:Atom[Term]
-    ,B<:Iterable[Atom[Term]] ] {
+    ,C<:Clause[H,Iterable[Atom[Term]]]
+    ] {
 
-  def histQuery
-    [V<:Term]
-    (c: Clause[H,B]
-    ,q: Var[V])
-  : Iterable[V]
+  def query
+    (c: C)
+  : Iterable[H]
 }
 
 trait Transactionable
-    [S, C<:BLC[Atom[Val[_]]] ] {
+    [S, C<:Clause[Atom[Term],
+         Iterable[Atom[Term]]] ] {
 
   def open: S
   def reset: Importer
