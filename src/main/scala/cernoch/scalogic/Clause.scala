@@ -6,10 +6,10 @@ package cernoch.scalogic
 class Clause
   [+Head <: Atom[Term],
    +Body <: Iterable[Atom[Term]]]
-  (val head:Head, val body: Body) {
+  (val head: Head, val body: Body) {
 
   def vars = Term.vars(head.args) ++
-    body.foldLeft( List[Var[Term]]() ){ (a,b) => Term.vars(b.args) ++ a }
+    body.foldLeft( List[Var]() ){ (a,b) => Term.vars(b.args) ++ a }
   
   override def toString
   = head.toString +

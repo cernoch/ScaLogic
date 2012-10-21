@@ -41,50 +41,39 @@ class TermTest extends Specification {
 
   val fo = Fun("f",List(o), num2)
 
-  "Substitution" should {
-    "replace a variable with the value" in {
-      x.subst(x,o) must_== o
-    }
-
-    "replace a list of variables" in {
-      Term.subst(List(x),x,o) must_== List(o)
-    }
-
-    "replace a variable in a function" in {
-      fx.subst(x,o) must_== fo
-    }
-  }
-
-
+  def sa(x: (Term,Term)*)
+  = (y:Term)
+    => x.foldLeft(Map[Term,Term]())
+        {(x,y) => x + y}.get(y)
 
   val fy = Fun("f",List(y), num2)
   val ffx = Fun("f", List(fx), num2)
 
-    "Matching" should {
+  "Substitution" should {
     "replace a variable with the value" in {
-      x.matching(Map(x->o)) must_== o
+      x.subst(sa(x -> o)) must_== o
     }
 
     "replace a variable in a function" in {
-      fx.matching(Map(x->o)) must_== fo
+      fx.subst(sa(x -> o)) must_== fo
     }
 
     "replace whole function with a value" in {
-      fx.matching(Map(fx->o)) must_== o
+      fx.subst(sa(fx->o)) must_== o
     }
 
     "treat different variables as non-unifiable" in {
-      fx.matching(Map(fy->o)) must_== fx
+      fx.subst(sa(fy->o)) must_== fx
     }
 
     "avoid occurs check" in {
-      fx.matching(Map(x->fx)) must_== ffx
+      fx.subst(sa(x->fx)) must_== ffx
     }
   }
 
 
 
-  "Unification" should {
+  /*"Unification" should {
 
     "succeed for two variables" in {
       x.unify(y) must_== Some(Map(x -> y))
@@ -117,7 +106,7 @@ class TermTest extends Specification {
     "avoid occurs check" in {
       x.unify(fx) must_== Some(Map(x -> fx))
     }
-  }
+  }*/
   
   
   

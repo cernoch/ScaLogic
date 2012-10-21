@@ -7,25 +7,6 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AtomTest extends Specification {
 
-  "Dictonary" should {
-
-    "create a circular reference map" in {
-      Dict fromList List(1,2,3)  must_== Map(1->2, 2->3, 3->1)
-    }
-
-    "work if list has 1 element" in {
-      Dict fromList List("x")  must_== Map("x" -> "x")
-    }
-
-    "work if list has 2 elements" in {
-      Dict fromList List('x', 'y')  must_== Map('x'->'y', 'y'->'x')
-    }
-
-    "fail on empty list" in {
-      Dict fromList List() must throwAn[NoSuchElementException]
-    }
-  }
-
   val num1a = NumDom("num1")
   val num1b = NumDom("num1")
 
@@ -43,14 +24,25 @@ class AtomTest extends Specification {
   val ayz0p1 = Atom("a", List(y,z,n1))
 
   "Substitituion" should {
-    "replace arbitrary items" in {
-      axyz.subst(z,n1).subst(y,z).subst(x,y) must_== ayz0p1
-    }
-  }
 
-  "Unification" should {
-    "work and ignore occurs check" in {
-      axyz unify ayz0p1 must_== Some(Map(x->y, y->z, z->n1))
+    def sa(x: (Term,Term)*)
+    = (y:Term)
+      => x.foldLeft(Map[Term,Term]())
+        {(x,y) => x + y}.get(y)
+
+    def sb(x: (Term,Term)*)
+    = (y:Term)
+      => x.foldLeft(Map[Term,Term]())
+        {(x,y) => x + y}.get(y).get
+
+
+
+    "replace arbitrary items" in {
+      axyz.subst(sa(z -> n1, y -> z, x-> y)) must_== ayz0p1
+    }
+
+    "replace all arguments" in {
+      axyz.sflat(sb(z -> n1, y -> z, x-> y)) must_== ayz0p1
     }
   }
 

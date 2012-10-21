@@ -20,42 +20,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package cernoch.scalogic;
+package cernoch.scalogic.exceptions;
 
 /**
- * Instantiation of an argument.
- *
- * <p>There are 3 types of Occurence
- * <ul>
- * <li><b>+</b>, <i>input</i>:
- *     occurence <u>must</u> be unified with an <u>output</u> occurence.</li>
- * <li><b>-</b>, <i>output</i>:
- *     occurence <u>can</u> be unified with another occurence.</li>
- * <li><b>#</b>, <i>const</i>:
- *     occurence <u>must not</u> be unified with another occurence.</li>
- * </ul>
- * </p>
+ * 
  *
  * @author Radomír Černoch (radomir.cernoch at gmail.com)
  */
-public enum Inst {
-    
-	IN('+'), OUT('-'), CONST('#');
+public class DomainNotFound extends SemanticsError {
 
-	public final char symbol;
-    Inst(char symbol) {
-    	this.symbol = symbol;
+	private static final long serialVersionUID = 753151452239874150L;
+
+	/**
+     * Creates a plain instance of <code>SyntaxError</code>.
+     */
+    public DomainNotFound() {
     }
 
-    public Inst resolve(char symbol) {
-    	for (Inst i : values())
-    		if (i.symbol == symbol)
-    			return i;
-    	return null;
+
+    /**
+     * Constructor with the specified detail message.
+     *
+     * @param message the detail message.
+     */
+    public DomainNotFound(String message) {
+        super(message);
     }
-    
-    @Override
-    public String toString() {
-        return Character.toString(symbol);
+
+
+    /**
+     * Constructor of the exception, in case reason is known.
+     *
+     * @param cause the reason to throw the exception.
+     */
+    public DomainNotFound(Throwable cause) {
+        super(cause);
+    }
+
+
+    /**
+     * Constructor with the detail message and the reason to throw {@code this}.
+     *
+     * @param message the detail message.
+     * @param cause the reason to throw the exception.
+     */
+    public DomainNotFound(String message, Throwable cause) {
+        super(message, cause);
     }
 }
