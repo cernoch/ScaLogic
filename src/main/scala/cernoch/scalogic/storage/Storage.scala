@@ -11,12 +11,13 @@ trait Dumpable
 }
 
 trait Queriable
-    [H<:Atom[Term]
-    ,C<:Clause[H,Iterable[Atom[Term]]] ]
+    [C<:Clause[Atom[Term],
+      Iterable[Atom[Term]]]
+    ,Out<:Term ]
 {
   def query
     (c: C)
-  : Iterable[H]
+  : Iterable[Map[Var,Out]]
 }
 
 trait Writeable

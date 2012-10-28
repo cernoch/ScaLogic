@@ -1,9 +1,6 @@
 package cernoch.scalogic
 
-import cernoch.scalogic.biased.Hook
 import tools._
-import exceptions.SyntaxError
-import scala.util.parsing.combinator.JavaTokenParsers
 
 /**
  *
