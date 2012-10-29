@@ -3,46 +3,33 @@ package cernoch.scalogic
 import tools.{Labeler, Mef}
 
 class Btom[+S <: Term](
-                        pred: String,
-                        args: List[S],
-                        val hooks: Set[Hook],
-                        val modeIn: Set[Term])
+    pred: String,
+    args: List[S],
+    val hooks: Set[Hook],
+    val modeIn: Set[Term])
   extends Atom[S](pred, args) {
 
   override def subst
-  (dict: Term => Option[Term])
+    (dict: Term => Option[Term])
   : Btom[Term]
   = {
-    val sArgs = Mef.map[Term, Term](args) {
-      _.subst(dict)
-    }
-    val sHooks = Mef.map(hooks) {
-      _.subst(dict)
-    }
-    val sModeIn = Mef.map(modeIn) {
-      _.subst(dict)
-    }
+    val sArgs = Mef.map[Term, Term](args) { _.subst(dict) }
+    val sHooks = Mef.map(hooks) { _.subst(dict) }
+    val sModeIn = Mef.map(modeIn) { _.subst(dict) }
 
     if (args == sArgs && hooks == sHooks && modeIn == sModeIn)
-      this
-    else new Btom[Term](pred, sArgs, sHooks, sModeIn)
+      this else new Btom[Term](pred, sArgs, sHooks, sModeIn)
   }
 
   def sflat
-  [T <: Term]
-  (dict: Term => Option[T])
+    [T <: Term]
+    (dict: Term => Option[T])
   : Btom[T]
   = {
     new Btom[T](pred,
-      args.map {
-        dict(_).get
-      },
-      hooks.map {
-        _.subst(dict)
-      },
-      modeIn.map {
-        _.subst(dict)
-      })
+      args.map { dict(_).get },
+      hooks.map { _.subst(dict) },
+      modeIn.map { _.subst(dict) })
   }
 
 
