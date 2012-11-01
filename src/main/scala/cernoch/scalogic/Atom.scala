@@ -4,6 +4,7 @@ import tools._
 
 /**
  *
+ *
  * @param args
  * 
  * @author Radomir Cernoch (radomir.cernoch at gmail.com)
@@ -12,30 +13,43 @@ class Atom
   [+S <: Term]
   (val pred: String, val args: List[S]) {
 
-  def subst
+  /**
+   * Translates all subterms using a dictionary
+   */
+  def substitute
     (dict: Term => Option[Term])
   = {
-    val sArg = Mef.map[Term,Term](args){_.subst(dict)}
+    val sArg = Mef.map[Term,Term](args){_.substitute(dict)}
     if (sArg.eq(args)) this else new Atom[Term](pred,sArg)
   }
 
   /**
-   * Flat (non-recursive) substitution
-   *
-   * @param dict
-   * @tparam T
-   * @return
+   * Translates arguments using the dictionary
    */
-  def sflat
+  def mapAllArgs
     [T <: Term]
-    (dict: S => T)
-  = new Atom[T](pred, args.map{dict(_)})
+    (dict: Term => T)
+  = Atom(pred, args.map{dict(_)})
 
-  def vars = Term.vars(args)
+  /**
+   * Translates arguments that are found in the map
+   */
+  def mapSomeArg
+    [T >: S <: Term]
+    (dict: Term => Option[T])
+  = {
+    val sArg = Mef.map[S,T](args){x => dict(x).getOrElse(x)}
+    if (sArg.eq(args)) this else new Atom[T](pred,sArg)
+  }
+
+
+  def variables = Term.variables(args)
 
   override def toString() = toString(Var.globalNames)
-  def toString(names: Labeler[Var,String]) =
-    pred + args.map{_.toString(names)}.mkString("(", ",", ")")
+
+  def toString(names: Labeler[Var,String])
+  = if (args.size == 0)
+      pred else args.map{_.toString(names)}.mkString(pred+"(", ",", ")")
 
   override def hashCode = pred.hashCode + 31 * args.hashCode
   override def equals(o:Any) = o match {
@@ -45,6 +59,21 @@ class Atom
 }
 
 object Atom {
-  def apply[T<:Term](p:String, a:List[T]) = new Atom[T](p,a)
-  def unapply[T<:Term](a:Atom[T]) = Some(a.pred, a.args)
+
+  def apply
+    [T <: Term]
+    (p: String, a: List[T])
+  : Atom[T]
+  = new Atom[T](p,a)
+
+  def apply
+    [T <: Term]
+    (p: String, a: T*)
+  : Atom[T]
+  = Atom(p, a.toList)
+
+  def unapply
+    [T <: Term]
+    (a: Atom[T])
+  = Some(a.pred, a.args)
 }

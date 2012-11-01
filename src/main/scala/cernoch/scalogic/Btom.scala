@@ -9,29 +9,36 @@ class Btom[+S <: Term](
     val modeIn: Set[Term])
   extends Atom[S](pred, args) {
 
-  override def subst
+  override def substitute
     (dict: Term => Option[Term])
   : Btom[Term]
   = {
-    val sArgs = Mef.map[Term, Term](args) { _.subst(dict) }
-    val sHooks = Mef.map(hooks) { _.subst(dict) }
-    val sModeIn = Mef.map(modeIn) { _.subst(dict) }
+    val sArgs = Mef.map[Term, Term](args) { _.substitute(dict) }
+    val sHooks = Mef.map(hooks) { _.substitute(dict) }
+    val sModeIn = Mef.map(modeIn) { _.substitute(dict) }
 
     if (args == sArgs && hooks == sHooks && modeIn == sModeIn)
       this else new Btom[Term](pred, sArgs, sHooks, sModeIn)
   }
 
-  def sflat
+  override def mapAllArgs
     [T <: Term]
-    (dict: Term => Option[T])
-  : Btom[T]
-  = {
-    new Btom[T](pred,
-      args.map { dict(_).get },
-      hooks.map { _.subst(dict) },
-      modeIn.map { _.subst(dict) })
-  }
+    (dict: Term => T)
+  = new Btom[T](pred,
+    args.map { dict(_) },
+    hooks.map { _.mapArgs{x => Some(dict(x))} },
+    modeIn.map { dict }
+  )
 
+  
+  override def mapSomeArg
+    [T >: S <: Term]
+    (dict: Term => Option[T])
+  = new Btom[T](pred,
+    args.map { dict(_).get },
+    hooks.map { _.mapArgs(dict) },
+    modeIn.map {x => dict(x).getOrElse(x)}
+  )
 
   def satisfiable = maxSucc.getOrElse(1) >= 1
 

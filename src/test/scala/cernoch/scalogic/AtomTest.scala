@@ -16,35 +16,37 @@ class AtomTest extends Specification {
   val y = Var(num1b)
   val z = Var(num2)
 
-  val n1 = Val(1, num2)
-  val n2 = Val(2, num2)
+  val one = Val(1, num2)
+  val two = Val(2, num2)
 
-  val axyz = Atom("a", List(x,y,z))
+  "Atom modification" should {
 
-  val ayz0p1 = Atom("a", List(y,z,n1))
+    val axyz = Atom("a", x,y,z)
+    val azyx = Atom("a", z,y,x)
 
-  "Substitituion" should {
+    val var2varDict = Dict(x -> z, z -> x)
 
-    def sa(x: (Term,Term)*)
-    = (y:Term)
-      => x.foldLeft(Map[Term,Term]())
-        {(x,y) => x + y}.get(y)
-
-    def sb(x: (Term,Term)*)
-    = (y:Term)
-      => x.foldLeft(Map[Term,Term]())
-        {(x,y) => x + y}.get(y).get
-
-
-
-    "replace arbitrary items" in {
-      axyz.subst(sa(z -> n1, y -> z, x-> y)) must_== ayz0p1
+    "substitute arbitrary items" in {
+      (axyz substitute var2varDict.get must_== azyx) and
+      (axyz mapSomeArg var2varDict.get must_== azyx)
     }
 
-    "replace all arguments" in {
-      axyz.sflat(sb(z -> n1, y -> z, x-> y)) must_== ayz0p1
+    val a111 = Atom("a", one,one,one)
+
+    val var2valDict = Dict(x -> one, y -> one, z -> one)
+
+    "infer types correctly" in {
+      val a: Atom[Term]   = axyz substitute var2valDict.get
+      val b: Atom[FFT]    = axyz mapSomeArg var2valDict.get
+      val c: Atom[Val[_]] = axyz mapAllArgs var2valDict
+
+      (a must_== a111) and
+      (b must_== a111) and
+      (c must_== a111)
+    }
+    
+    "fail on mapping all argument with partial dictionary" in {
+      axyz mapAllArgs var2varDict must throwA[Exception]
     }
   }
-
-  // TODO: Test biased atom
 }

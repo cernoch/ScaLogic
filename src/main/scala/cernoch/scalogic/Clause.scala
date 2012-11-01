@@ -1,49 +1,103 @@
 package cernoch.scalogic
 
+import collection.mutable.ArrayBuffer
+
 /**
- * Clause is a set or a list of literals
+ * Clause is a set or a list of positive and negative literals
  */
 class Clause
-  [+Head <: Atom[Term],
+  [+Head <: Iterable[Atom[Term]],
    +Body <: Iterable[Atom[Term]]]
-  (val head: Head, val body: Body) {
+  (val headAtoms: Head, val bodyAtoms: Body) {
 
-  def vars = Term.vars(head.args) ++
-    body.foldLeft( List[Var]() ){ (a,b) => Term.vars(b.args) ++ a }
-  
-  override def toString
-  = head.toString +
-    ( if (body.isEmpty) ""
-      else " <- " + body.map{_.toString}.reduceLeft{_ + ", " + _}
-    ) + "."
-
-  override def hashCode = head.hashCode + 3 * body.hashCode
+  override def hashCode = headAtoms.hashCode + 3 * bodyAtoms.hashCode
   override def equals(o:Any) = o match {
-    case c:Clause[_,_] => (head == c.head) && (body == c.body)
+    case c:Clause[_,_] => (headAtoms == c.headAtoms) &&
+                          (bodyAtoms == c.bodyAtoms)
     case r:AnyRef => this.eq(r)
     case _ => false
   }
+
+  override def toString
+  = headAtoms.mkString(" \\/ ") +
+    ( if (bodyAtoms.isEmpty) "" else
+        " <- " + bodyAtoms.mkString(" /\\ ")
+    ) + "."
+
+  def variables
+  = {
+
+    val buf = new ArrayBuffer[Var]()
+
+    def termVars(t: Term)
+    : Unit
+    = t match {
+      case _:Val[_] =>
+      case v:Var => buf += v
+      case f:Fun => f.args.foreach(termVars)
+    }
+
+    headAtoms.foreach(_.args.foreach(termVars))
+    bodyAtoms.foreach(_.args.foreach(termVars))
+  }
 }
 
-object Clause {
-  def appply[H<:Atom[Term], T<:Iterable[Atom[Term]]](h:H,i:T) = new Clause(h,i)
+/**
+ * Horn clause has at most 1 head atom
+ */
+class Horn
+  [+Head <: Atom[Term],
+   +Body <: Iterable[Atom[Term]]]
+  (val head: Head, body: Body)
+    extends
+      Clause[Iterable[Head], Body](
+        if (head eq null) Iterable() else Iterable(head),
+        body
+      )
+  {}
+
+object Horn {
+
+  def appply
+    [H<:Atom[Term],
+     B<:Iterable[Atom[Term]]]
+    (head: H,
+     body: B)
+  = new Horn(head, body)
   
-  def unapply[H<:Atom[Term], T<:Iterable[Atom[Term]]]
-    (c:Clause[H,T]) = Some((c.head, c.body))
+  def apply
+    [B<:Iterable[Atom[Term]]]
+    (body: B)
+  = new Horn(null, body)
+  
+  def unapply
+    [H<:Atom[Term],
+     T<:Iterable[Atom[Term]]]
+    (c: Clause[Iterable[H],T])
+  = c.headAtoms.size match {
+      case 0 => Some(            null, c.bodyAtoms)
+      case 1 => Some(c.headAtoms.head, c.bodyAtoms)
+      case _ => None
+    }
 }
 
+
+/**
+ * Body-less clause has 1 head atom and 0 body atoms
+ */
 class BLC[+H<:Atom[Term]](head:H)
-	extends Clause[H,Iterable[Nothing]](head, List()) {
-
-  override def hashCode = head.hashCode
-  override def equals(o:Any) = o match {
-    case c:BLC[_] => head == c.head
-    case r:AnyRef => this.eq(r)
-    case _ => false
-  }  
-}
+	extends Horn[H, Iterable[Nothing] ](head, Iterable()){ }
 
 object BLC {
-  def   apply[H<:Atom[Term]](h:H) = new BLC(h)
-  def unapply[H<:Atom[Term]](c:BLC[H]) = Some(c.head)
+
+  def apply
+    [H <: Atom[Term]]
+    (head: H)
+  = new BLC(head)
+
+  def unapply
+    [H <: Atom[Term]]
+    (c: Clause[Iterable[H],Iterable[Atom[Term]]])
+  = if (c.headAtoms.size == 1 && c.bodyAtoms.size == 0)
+      Some(c.headAtoms.iterator.next) else None
 }

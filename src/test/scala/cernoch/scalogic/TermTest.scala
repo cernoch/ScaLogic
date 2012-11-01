@@ -51,23 +51,23 @@ class TermTest extends Specification {
 
   "Substitution" should {
     "replace a variable with the value" in {
-      x.subst(sa(x -> o)) must_== o
+      x.substitute(sa(x -> o)) must_== o
     }
 
     "replace a variable in a function" in {
-      fx.subst(sa(x -> o)) must_== fo
+      fx.substitute(sa(x -> o)) must_== fo
     }
 
     "replace whole function with a value" in {
-      fx.subst(sa(fx->o)) must_== o
+      fx.substitute(sa(fx->o)) must_== o
     }
 
     "treat different variables as non-unifiable" in {
-      fx.subst(sa(fy->o)) must_== fx
+      fx.substitute(sa(fy->o)) must_== fx
     }
 
     "avoid occurs check" in {
-      fx.subst(sa(x->fx)) must_== ffx
+      fx.substitute(sa(x->fx)) must_== ffx
     }
   }
 
@@ -113,23 +113,23 @@ class TermTest extends Specification {
   "All variables" should {
     
     "give a variable from a variable" in {
-      x.vars must_== List(x)
+      x.variables must_== List(x)
     }
     
     "give an empty list from a constant" in {
-      o.vars must_== List()
+      o.variables must_== List()
     }
 
     val gfxfy = Fun("g", List(fx,fy), num1a)
     
     "recurse deeply" in {
-      gfxfy.vars must_== List(x,y)
+      gfxfy.variables must_== List(x,y)
     }
 
     val gfxfx = Fun("g", List(fx,fx), num1a)
 
     "return a variable more than once if it occurs more than once" in {
-      gfxfx.vars must_== List(x,x)
+      gfxfx.variables must_== List(x,x)
     }
   }
 }

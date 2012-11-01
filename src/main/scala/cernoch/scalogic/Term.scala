@@ -14,11 +14,11 @@ abstract sealed class Term(val dom:Domain[_]) {
    * @param dict Mapping from replaced terms to their replacements
    * @return All subterms in map's keys replaced by the values
    */
-  def subst
+  def substitute
     (dict: Term => Option[Term])
   : Term
   = dict(this).getOrElse{ this match {
-      case f:Fun => f.mefMap{_.subst(dict)}
+      case f:Fun => f.mefMap{_.substitute(dict)}
       case fft => fft
     } }
 
@@ -26,10 +26,10 @@ abstract sealed class Term(val dom:Domain[_]) {
    * All variables in this term
    * @return List of all subterms that are variables
    */
-  def vars = this match {
+  def variables = this match {
     case _:Val[_] => List()
     case v:Var => List(v)
-    case f:Fun => Term.vars(f.args)
+    case f:Fun => Term.variables(f.args)
   }
 
   /**
@@ -67,12 +67,12 @@ object Term {
    * All variables in the list of terms
    * @return List of all subterms that are variables
    */
-  def vars
+  def variables
     (l:List[Term])
   : List[Var]
   = l match {
       case Nil => List()
-      case head :: tail => head.vars ++ vars(tail)
+      case head :: tail => head.variables ++ variables(tail)
     }
 }
 
