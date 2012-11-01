@@ -25,7 +25,7 @@ class Btom[+S <: Term](
     [T <: Term]
     (dict: Term => T)
   = new Btom[T](pred,
-    args.map { dict(_) },
+    args.map { dict },
     hooks.map { _.mapArgs{x => Some(dict(x))} },
     modeIn.map { dict }
   )
@@ -35,7 +35,7 @@ class Btom[+S <: Term](
     [T >: S <: Term]
     (dict: Term => Option[T])
   = new Btom[T](pred,
-    args.map { dict(_).get },
+    args.map {x => dict(x).getOrElse(x) },
     hooks.map { _.mapArgs(dict) },
     modeIn.map {x => dict(x).getOrElse(x)}
   )
