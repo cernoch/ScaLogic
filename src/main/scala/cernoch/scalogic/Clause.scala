@@ -39,6 +39,8 @@ class Clause
 
     headAtoms.foreach(_.args.foreach(termVars))
     bodyAtoms.foreach(_.args.foreach(termVars))
+
+    buf.toList
   }
 }
 
