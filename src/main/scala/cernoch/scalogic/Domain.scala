@@ -2,6 +2,7 @@ package cernoch.scalogic
 
 import exceptions.SyntaxError
 import scala.math._
+import tools.StringUtils._
 
 abstract sealed class Domain[+T]
   (val name: String
@@ -10,7 +11,7 @@ abstract sealed class Domain[+T]
   def valueOf(s:String) : T
   
   override def hashCode() = name.hashCode()
-  override def toString = (if (isKey) "@" else "") + name
+  override def toString = (if (isKey) "@" else "&") + name
 }
 
 
@@ -62,9 +63,9 @@ class CatDom(name: String, isKey: Boolean,
   }
   
   override def toString = {
-    super.toString() + ":cat" + " [" +
-      allowed.map("\"" + _ + "\"").mkString(", ") + "]"
-  } 
+    super.toString() + ":cat" +
+      mkStringIfNonEmpty( allowed.map{ident(_)} )( "[",",","]" )
+  }
   override def equals(o: Any) =
     o.isInstanceOf[CatDom] &&
       name.equals(o.asInstanceOf[CatDom].name) &&
@@ -84,7 +85,7 @@ import scala.util.parsing.combinator._
 
 
 object Domain {
-  
+
   def apply(line: String) : Domain[_] = {
     DomGrammar.parse(DomGrammar.line, line) match {
       case DomGrammar.Success(r,_) => r.asInstanceOf[Domain[_]]

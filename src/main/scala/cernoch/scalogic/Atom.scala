@@ -48,8 +48,8 @@ class Atom
   override def toString() = toString(Var.globalNames)
 
   def toString(names: Labeler[Var,String])
-  = if (args.size == 0)
-      pred else args.map{_.toString(names)}.mkString(pred+"(", ",", ")")
+  = pred + StringUtils.mkStringIfNonEmpty(
+      args.map{_.toString(names)} )( "( ",", ",")" )
 
   override def hashCode = pred.hashCode + 31 * args.hashCode
   override def equals(o:Any) = o match {

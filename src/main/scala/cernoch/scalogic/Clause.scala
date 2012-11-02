@@ -87,7 +87,9 @@ object Horn {
 /**
  * Body-less clause has 1 head atom and 0 body atoms
  */
-class BLC[+H<:Atom[Term]](head:H)
+class BLC
+    [+H<:Atom[Term]]
+    (head:H)
 	extends Horn[H, Iterable[Nothing] ](head, Iterable()){ }
 
 object BLC {

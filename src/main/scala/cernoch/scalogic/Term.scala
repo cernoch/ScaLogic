@@ -2,7 +2,7 @@ package cernoch.scalogic
 
 import tools.NameGen.ALPHABET
 import scala.math.{BigInt, BigDecimal => BigDec}
-import tools.{Labeler, Mef}
+import tools.{StringUtils, Labeler, Mef}
 
 /**
  * Term is either a constant value, a function or a variable
@@ -178,15 +178,10 @@ final class Dec(val v:BigDec, override val dom:DecDom) extends Val[BigDec](dom) 
 final class Cat(val v:String, override val dom:CatDom) extends Val[String](dom) {
   def get = v
 
-  override def toString = super.toString match {
-    case Cat.NO_QUOTE(s) => s
-    case s => "'" + s.replace("'", "\\'") + "'"
-  }
+  override def toString
+  = StringUtils.ident(get, "'") + dom.toString
 }
 
-object Cat {
-  def unapply(v:Cat) = Some(v.get)
-  val NO_QUOTE = "[a-z][A-Z0-9_]*".r
-}
+object Cat { def unapply(v:Cat) = Some(v.get) }
 object Num { def unapply(v:Num) = Some(v.get) }
 object Dec { def unapply(v:Dec) = Some(v.get) }
