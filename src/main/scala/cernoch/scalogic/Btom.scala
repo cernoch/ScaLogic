@@ -1,6 +1,7 @@
 package cernoch.scalogic
 
-import tools.{Labeler, Mef}
+import tools.{StringUtils, Labeler, Mef}
+
 
 class Btom[+S <: Term](
     pred: String,
@@ -63,13 +64,13 @@ class Btom[+S <: Term](
 
   override def toString() = toString(Var.globalNames)
 
-  override def toString(names: Labeler[Var, String]) =
-    pred + args.map {
-      arg =>
-        (if (modeIn.contains(arg)) "+" else "-") +
-          arg.toString(names)
-    }
-      .mkString("(", ",", ")")
+  override def toString(names: Labeler[Var, String])
+  = pred + StringUtils.mkStringIfNonEmpty(
+    args.map{arg =>
+      (if (modeIn.contains(arg)) "+" else "-")
+      arg.toString(names)
+    })( "( ",", ",")" )
+  
 
   override def hashCode = modeIn.hashCode + 17 * super.hashCode
 
