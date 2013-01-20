@@ -2,7 +2,7 @@ package cernoch.scalogic.tools
 
 object StringUtils {
 
-  val SIMPLE_STRING = "[a-zA-Z_][a-zA-Z0-9_]*".r
+  val SIMPLE_STRING = "[a-zA-Z0-9_]+".r
 
   def ident
     (s: String,

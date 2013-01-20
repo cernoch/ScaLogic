@@ -61,11 +61,17 @@ class CatDom(name: String, isKey: Boolean,
           "' is not among the allowed values of domain '" + name + "'.")
     }
   }
-  
-  override def toString = {
-    super.toString() + ":cat" +
-      mkStringIfNonEmpty( allowed.map{ident(_)} )( "[",",","]" )
+
+  def toString(long: Boolean) = {
+    super.toString() +
+      ":cat" +
+      (if (long) mkStringIfNonEmpty(
+          allowed.map{ident(_)}
+        )( "[",",","]" )
+      else "")
   }
+
+  override def toString = toString(true)
   override def equals(o: Any) =
     o.isInstanceOf[CatDom] &&
       name.equals(o.asInstanceOf[CatDom].name) &&

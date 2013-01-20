@@ -52,8 +52,8 @@ abstract sealed class Term(val dom:Domain[_]) {
    * @return
    */
   def toString(names: Labeler[Var,String]) : String = this match {
-    case l:Val[_] => l.toString
-    case r:Var => names(r)
+    case l:Val[_] => l.toString + dom.toString
+    case r:Var => names(r) + dom.toString
     case f:Fun => f.name + f.args.mkString("(", ",", ")")
     case _ => super.toString
   }
@@ -179,7 +179,7 @@ final class Cat(val v:String, override val dom:CatDom) extends Val[String](dom) 
   def get = v
 
   override def toString
-  = StringUtils.ident(get, "'") + dom.toString
+  = StringUtils.ident(get, "'") + dom.toString(false)
 }
 
 object Cat { def unapply(v:Cat) = Some(v.get) }

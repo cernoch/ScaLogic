@@ -1,6 +1,8 @@
 package cernoch.scalogic
 
 import collection.mutable.ArrayBuffer
+import tools.Labeler
+import tools.StringUtils.mkStringIfNonEmpty
 
 /**
  * Clause is a set or a list of positive and negative literals
@@ -18,11 +20,14 @@ class Clause
     case _ => false
   }
 
-  override def toString
-  = headAtoms.mkString(" \\/ ") +
-    ( if (bodyAtoms.isEmpty) "" else
-        " <- " + bodyAtoms.mkString(" /\\ ")
-    ) + "."
+  override def toString() = toString(Var.globalNames)
+
+  def toString(names: Labeler[Var,String])
+  = headAtoms.map{_.toString(names)}.mkString(" \\/ ") +
+    mkStringIfNonEmpty(
+      bodyAtoms.view.map{_.toString(names)})(
+      " <- ", " /\\ ", "") +
+    "."
 
   def variables
   = {
