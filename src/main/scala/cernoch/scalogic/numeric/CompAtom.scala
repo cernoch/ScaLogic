@@ -31,8 +31,8 @@ class LessThan
     [T <: Term]
     (dict: Term => T)
   = {
-    val (x,y) = args.map{dict(_)};
-    new LessThan(x,y);
+    val sArgs = args.map{dict(_)}
+    new LessThan[T](sArgs(0),sArgs(1))
   }
 
   /**
@@ -76,8 +76,8 @@ class LessOrEq
   [T <: Term]
   (dict: Term => T)
   = {
-    val (x,y) = args.map{dict(_)};
-    new LessOrEq(x,y);
+    val sArgs = args.map{dict(_)}
+    new LessOrEq[T](sArgs(0),sArgs(1))
   }
 
   /**
