@@ -20,12 +20,20 @@ class Clause
     case _ => false
   }
 
+  def toShort(): String = toShort(Var.globalNames)
   override def toString() = toString(Var.globalNames)
 
   def toString(names: Labeler[Var,String])
   = headAtoms.map{_.toString(names)}.mkString(" \\/ ") +
     mkStringIfNonEmpty(
       bodyAtoms.view.map{_.toString(names)})(
+      " <- ", " /\\ ", "") +
+    "."
+
+  def toShort(names: Labeler[Var,String])
+  = headAtoms.map{_.toShort(names)}.mkString(" \\/ ") +
+    mkStringIfNonEmpty(
+      bodyAtoms.view.map{_.toShort(names)})(
       " <- ", " /\\ ", "") +
     "."
 

@@ -9,9 +9,10 @@ abstract sealed class Domain[+T]
   ,val isKey: Boolean) {
   
   def valueOf(s:String) : T
-  
+
+  def toShort = (if (isKey) "@" else "&") + name
+  override def toString = toShort
   override def hashCode() = name.hashCode()
-  override def toString = (if (isKey) "@" else "&") + name
 }
 
 
@@ -20,7 +21,7 @@ class DecDom(name:String) extends Domain[BigDecimal](name, false) {
     case "" => null
     case _ => BigDecimal(s)
   }
-  override def toString = super.toString() + ":dec";
+  override def toString = super.toString() + ":dec"
   override def equals(o: Any) =
     o.isInstanceOf[DecDom] && name.equals(o.asInstanceOf[DecDom].name)
 }
@@ -36,7 +37,7 @@ class NumDom(name:String, isKey:Boolean) extends Domain[BigInt](name, isKey) {
     case "" => null
     case _ => BigInt(s)
   }
-  override def toString = super.toString() + ":int";
+  override def toString = super.toString() + ":int"
   override def equals(o: Any) =
     o.isInstanceOf[NumDom] && name.equals(o.asInstanceOf[NumDom].name)
 }
@@ -62,16 +63,11 @@ class CatDom(name: String, isKey: Boolean,
     }
   }
 
-  def toString(long: Boolean) = {
-    super.toString() +
-      ":cat" +
-      (if (long) mkStringIfNonEmpty(
-          allowed.map{ident(_)}
-        )( "[",",","]" )
-      else "")
+  override def toString = {
+    super.toString() + ":cat" +
+      mkStringIfNonEmpty(allowed.map{ident(_)})( "[",",","]" )
   }
 
-  override def toString = toString(true)
   override def equals(o: Any) =
     o.isInstanceOf[CatDom] &&
       name.equals(o.asInstanceOf[CatDom].name) &&
@@ -112,7 +108,7 @@ object Domain {
         
         case "dec" => {
           if (token == true) throw new SyntaxError(
-              "Decadic domain cannot be a key.");
+              "Decadic domain cannot be a key.")
           new DecDom(name)
         }
         

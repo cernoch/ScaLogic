@@ -42,21 +42,10 @@ abstract sealed class Term(val dom:Domain[_]) {
 
   /**
    * String representation of this term (using scoped variable names)
-   *
-   * {{{
-   *   val x: Term = ...
-   *   x.toString(new Labeler[Var,String](NameGen.ALPHABET))
-   * }}}
-   *
-   * @param names Extendable mapping from variables to their names
-   * @return
    */
-  def toString(names: Labeler[Var,String]) : String = this match {
-    case l:Val[_] => l.toString + dom.toString
-    case r:Var => names(r) + dom.toString
-    case f:Fun => f.name + f.args.mkString("(", ",", ")")
-    case _ => super.toString
-  }
+  def toString(names: Labeler[Var,String]) = toReallyShort(names) + dom.toString
+  def toShort(names: Labeler[Var,String]) = toReallyShort(names) + dom.toShort
+  def toReallyShort(names: Labeler[Var,String]) : String
 }
 
 
@@ -84,7 +73,9 @@ abstract sealed class FFT(dom:Domain[_]) extends Term(dom) {}
 /**
  * Variable can be substituted or unified
  */
-final class Var(dom:Domain[_]) extends FFT(dom) {}
+final class Var(dom:Domain[_]) extends FFT(dom) {
+  def toReallyShort(names: Labeler[Var,String]) = names(this)
+}
 
 object Var {
   val globalNames = new Labeler[Var,String](ALPHABET)
@@ -104,7 +95,10 @@ object Var {
 final class Fun
 	(val name: String, val args:List[Term], dom:Domain[_])
 	extends Term(dom) {
-  
+
+  def toReallyShort(names: Labeler[Var,String])
+  = name + args.map{_.toString(names)}.mkString("(", ",", ")")
+
   override def hashCode
         = name.hashCode
     + 7 * args.hashCode
@@ -148,7 +142,14 @@ abstract sealed class Val[+T]
   
   def get: T
 
-  override def toString = {if (get == null) "null" else get.toString} + dom.toString
+  def toReallyShort(names: Labeler[Var,String])
+  = if (get == null) "NULL" else {
+    val str = get.toString
+    if (str matches "[a-z][a-zA-Z0-9]*")
+      str else "'" + str.replaceAll("'", "\\'") + "'"
+  }
+
+
   override def hashCode = (if (get == null) 0 else get.hashCode) + 7 * dom.hashCode
   override def equals(o:Any) = o match {
     case v:Val[_] => get == v.get && dom == v.dom
@@ -175,12 +176,7 @@ object Val {
 
 final class Num(val v:BigInt, override val dom:NumDom) extends Val[BigInt](dom) { def get = v }
 final class Dec(val v:BigDec, override val dom:DecDom) extends Val[BigDec](dom) { def get = v }
-final class Cat(val v:String, override val dom:CatDom) extends Val[String](dom) {
-  def get = v
-
-  override def toString
-  = StringUtils.ident(get, "'") + dom.toString(false)
-}
+final class Cat(val v:String, override val dom:CatDom) extends Val[String](dom) { def get = v }
 
 object Cat { def unapply(v:Cat) = Some(v.get) }
 object Num { def unapply(v:Num) = Some(v.get) }

@@ -1,7 +1,7 @@
 package cernoch.scalogic.numeric
 
 import cernoch.scalogic._
-import tools.{Mef, Labeler, StringUtils}
+import tools.{Mef, Labeler}
 
 
 /**
@@ -11,7 +11,7 @@ import tools.{Mef, Labeler, StringUtils}
  */
 class LessThan
     [S <: Term]
-    (x: S, y: S)
+    (val x: S, val y: S)
   extends Atom[S]("lessThan", List(x,y)) {
 
   /**
@@ -56,7 +56,7 @@ class LessThan
 
 class LessOrEq
     [S <: Term]
-    (x: S, y: S)
+    (val x: S, val y: S)
   extends Atom[S]("lessOrEq", List(x,y)) {
 
   /**

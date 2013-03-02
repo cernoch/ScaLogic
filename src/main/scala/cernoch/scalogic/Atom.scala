@@ -45,11 +45,14 @@ class Atom
 
   def variables = Term.variables(args)
 
+  def toShort(): String = toShort(Var.globalNames)
   override def toString() = toString(Var.globalNames)
 
   def toString(names: Labeler[Var,String])
-  = pred + StringUtils.mkStringIfNonEmpty(
-      args.map{_.toString(names)} )( "( ",", ",")" )
+  = pred + StringUtils.mkStringIfNonEmpty(args.map{_.toString(names)})( "( ",", ",")" )
+
+  def toShort(names: Labeler[Var,String])
+  = pred + StringUtils.mkStringIfNonEmpty(args.map{_.toShort(names)})( "( ",", ",")" )
 
   override def hashCode = pred.hashCode + 31 * args.hashCode
   override def equals(o:Any) = o match {
