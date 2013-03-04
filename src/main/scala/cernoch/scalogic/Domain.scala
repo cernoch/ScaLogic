@@ -1,138 +1,181 @@
 package cernoch.scalogic
 
-import exceptions.SyntaxError
-import scala.math._
-import tools.StringUtils._
+import math.Numeric._
+import collection.SortedSet
 
-abstract sealed class Domain[+T]
-  (val name: String
-  ,val isKey: Boolean) {
-  
-  def valueOf(s:String) : T
+trait Domain {
 
-  def toShort = (if (isKey) "@" else "&") + name
-  override def toString = toShort
-  override def hashCode() = name.hashCode()
+	def name: String
+
+	override def toString = name
+	override def hashCode() = name.hashCode()
+	override def equals(o: Any) = o match {
+		case d:Domain => name == d.name
+		case _ => false
+	}
 }
 
+trait IsKey extends Domain {
+	def isKey: Boolean
 
-class DecDom(name:String) extends Domain[BigDecimal](name, false) {
-  override def valueOf(s:String) = s match {
-    case "" => null
-    case _ => BigDecimal(s)
-  }
-  override def toString = super.toString() + ":dec"
-  override def equals(o: Any) =
-    o.isInstanceOf[DecDom] && name.equals(o.asInstanceOf[DecDom].name)
+	override def toString()
+	= (if (isKey) "@" else "&") + super.toString
 }
 
-object DecDom {
-  def apply(name:String) = new DecDom(name)
-  def unapply(d:DecDom) = Some(d.name)
+trait Limited[S] {
+	def isAllowed(s: S): Boolean
 }
 
-
-class NumDom(name:String, isKey:Boolean) extends Domain[BigInt](name, isKey) {
-  override def valueOf(s:String) = s match {
-    case "" => null
-    case _ => BigInt(s)
-  }
-  override def toString = super.toString() + ":int"
-  override def equals(o: Any) =
-    o.isInstanceOf[NumDom] && name.equals(o.asInstanceOf[NumDom].name)
+trait Bounded[S] {
+	def minValue: S
+	def maxValue: S
 }
-
-object NumDom {
-  def apply(name:String, isKey:Boolean = false) = new NumDom(name, isKey)
-  def unapply(d:NumDom) = Some(d.name, d.isKey)
-}
-
-
-class CatDom(name: String, isKey: Boolean,
-	      val allowed: Set[String])
-    extends Domain[String](name, isKey) {
-  
-  def this(name: String, isKey: Boolean) = this(name, isKey, Set())
-  
-  override def valueOf(s:String) = {
-    if (s.trim.length == 0) null
-    else {
-      if (allowed.size == 0 || allowed.contains(s)) s
-      else throw new Exception("Value '" + s +
-          "' is not among the allowed values of domain '" + name + "'.")
-    }
-  }
-
-  override def toString = {
-    super.toString() + ":cat" +
-      mkStringIfNonEmpty(allowed.map{ident(_)})( "[",",","]" )
-  }
-
-  override def equals(o: Any) =
-    o.isInstanceOf[CatDom] &&
-      name.equals(o.asInstanceOf[CatDom].name) &&
-      allowed.equals(o.asInstanceOf[CatDom].allowed)
-}
-
-object CatDom {
-  def apply(name:String, isKey:Boolean = false, allowed:Set[String] = Set())
-    = new CatDom(name, isKey, allowed)
-  def unapply(d:CatDom) = Some(d.name, d.isKey, d.allowed)
-}
-
-
-
-
-import scala.util.parsing.combinator._
-
 
 object Domain {
+	def apply(domName: String)
+	= new Domain {
+		def name = domName
+	}
 
-  def apply(line: String) : Domain[_] = {
-    DomGrammar.parse(DomGrammar.line, line) match {
-      case DomGrammar.Success(r,_) => r.asInstanceOf[Domain[_]]
-      case x => throw new SyntaxError(
-          "Unknown syntax error.\n" + x)
-    }
-  }
-  
-  object DomGrammar extends JavaTokenParsers {
+	def int(n: String)
+	= new Domain with IntIsIntegral {
+		def compare(x: Int, y: Int): Int = x - y
+		def name: String = n
+	}
 
-    def line = namePart ~ tipe ~ opt(allowed) <~ opt(comment) <~ " *$".r ^^ {
-      case token ~ name ~ tipe ~ allowed => tipe match {
-        
-        case "num" => new NumDom(name, token)
-        
-        case "cat" => new CatDom(name, token,
-            allowed.getOrElse(Set()).toSet)
-        
-        case "dec" => {
-          if (token == true) throw new SyntaxError(
-              "Decadic domain cannot be a key.")
-          new DecDom(name)
-        }
-        
-        case _ => throw new SyntaxError(
-          "Unknown type '" + tipe + "'. "
-          + "Allowed types: num, int, cat.")
-      }
-    }
-    
-    def namePart = token ~ mystr <~ ":"
-        
-    def token = tokenKey | tokenVal
-    def tokenKey = "@" ^^ { (x => true) }
-    def tokenVal = "" ^^ { (x => false) }
-    
-    def tipe = "dec" | "num" | "cat"
-    
-    def allowed = "\\[".r ~> repsep(mystr, ", *".r) <~ "\\]".r    
-    
-    def comment = """//.*$""".r
-    
-    def mystr = ident | stringLiteral ^^ { s =>
-      if (s.length() > 0 && s.charAt(0) == '"')
-        s.substring(1, s.length()-1) else s
-    }
-  }
+	def int(domName: String, minVal: Int, maxVal: Int)
+	= new Domain with IntIsIntegral
+		with Bounded[Int] with Limited[Int] {
+		def name = domName
+		def minValue = minVal
+		def maxValue = maxVal
+		def compare(x: Int, y: Int) = x - y
+		def isAllowed(s: Int)
+		= s >= minVal && s <= maxVal
+	}
+
+	def long(domName: String)
+	= new Domain with LongIsIntegral {
+		def compare(x: Long, y: Long)
+		= if (x == y) 0 else if (x > y) 1 else -1
+		def name: String = domName
+	}
+
+	def long(domName: String, minVal: Long, maxVal: Long)
+	= new Domain with LongIsIntegral
+		with Bounded[Long] with Limited[Long] {
+		def name = domName
+		def minValue = minVal
+		def maxValue = maxVal
+		def isAllowed(s: Long)
+		= s >= minVal && s <= maxVal
+		def compare(x: Long, y: Long)
+		= if (x == y) 0 else if (x > y) 1 else -1
+	}
+
+	def bigNum(domName: String)
+	= new Domain with BigIntIsIntegral {
+		def name: String = domName
+		def compare(x: BigInt, y: BigInt)
+		= if (x == y) 0 else if (x > y) 1 else -1
+	}
+
+	def bigNum(domName: String, minVal: BigInt, maxVal: BigInt)
+	= new Domain with BigIntIsIntegral
+		with Bounded[BigInt] with Limited[BigInt] {
+		def name = domName
+		def minValue = minVal
+		def maxValue = maxVal
+		def compare(x: BigInt, y: BigInt)
+		= if (x == y) 0 else if (x > y) 1 else -1
+		def isAllowed(s: BigInt)
+		= s >= minVal && s <= maxVal
+	}
+
+	def float(domName: String)
+	= new Domain with DoubleIsFractional {
+		def name = domName
+		def compare(x: Double, y: Double)
+		= if (x == y) 0 else if (x > y) 1 else -1
+	}
+
+	def float
+	(domName: String, minVal: Float, maxVal: Float)
+	= new Domain with FloatIsFractional
+		with Bounded[Float] with Limited[Float] {
+		def name = domName
+		def minValue = minVal
+		def maxValue = maxVal
+		def compare(x: Float, y: Float)
+		= if (x == y) 0 else if (x > y) 1 else -1
+		def isAllowed(s: Float)
+		= s >= minVal && s <= maxVal
+	}
+
+	def dec(domName: String)
+	= new Domain with DoubleIsFractional {
+		def name = domName
+		def compare(x: Double, y: Double)
+		= if (x == y) 0 else if (x > y) 1 else -1
+	}
+
+	def dec
+	(domName: String, minVal: Double, maxVal: Double)
+	= new Domain with DoubleIsFractional
+		with Bounded[Double] with Limited[Double] {
+		def name = domName
+		def minValue = minVal
+		def maxValue = maxVal
+		def compare(x: Double, y: Double)
+		= if (x == y) 0 else if (x > y) 1 else -1
+		def isAllowed(s: Double)
+		= s >= minVal && s <= maxVal
+	}
+
+
+	def bigDec(domName: String)
+	= new Domain with DoubleIsFractional {
+		def name = domName
+		def compare(x: Double, y: Double)
+		= if (x == y) 0 else if (x > y) 1 else -1
+	}
+
+	def bigDec
+	(domName: String, minVal: BigDecimal, maxVal: BigDecimal)
+	= new Domain with BigDecimalIsFractional
+		with Bounded[BigDecimal] with Limited[BigDecimal] {
+		def name = domName
+		def minValue = minVal
+		def maxValue = maxVal
+		def compare(x: BigDecimal, y: BigDecimal)
+		= if (x == y) 0 else if (x > y) 1 else -1
+		def isAllowed(s: BigDecimal)
+		= s >= minVal && s <= maxVal
+	}
+
+	def cat(domName: String)
+	= new Domain {
+		def name = domName
+	}
+
+	def cat(domName: String, allowed: Set[String])
+	= new Domain with Iterable[String] with Limited[String] {
+		def name = domName
+		def iterator = allowed.iterator
+		def isAllowed(s: String)
+		= allowed.contains(s)
+	}
+
+	def ord(domName: String, allowed: SortedSet[String])
+	= new Domain with Iterable[String] with Ordering[String]
+		with Limited[String] with Bounded[String] {
+		def name = domName
+		def minValue = allowed.firstKey
+		def maxValue = allowed.lastKey
+		def iterator = allowed.iterator
+		def isAllowed(s: String)
+		= allowed.contains(s)
+		def compare(x: String, y: String)
+		= allowed.compare(x,y)
+	}
 }

@@ -7,17 +7,17 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TermTest extends Specification {
 
-  val num1a = NumDom("num1")
-  val num1b = NumDom("num1")
+  val num1a = Domain.int("num1")
+  val num1b = Domain.int("num1")
 
-  val num2 = NumDom("num2")
+  val num2 = Domain.int("num2")
 
-  val dec = DecDom("dec")
+  val dec = Domain.dec("dec")
 
   val x = Var(dec)
   val y = Var(dec)
   
-  "Two different variables" should {
+  "Two different vars" should {
     "not be equal" in {
       x must_!= y
     }
@@ -51,85 +51,48 @@ class TermTest extends Specification {
 
   "Substitution" should {
     "replace a variable with the value" in {
-      x.substitute(sa(x -> o)) must_== o
+      x subst (x -> o) must_== o
     }
 
     "replace a variable in a function" in {
-      fx.substitute(sa(x -> o)) must_== fo
+      fx subst (x -> o) must_== fo
     }
 
     "replace whole function with a value" in {
-      fx.substitute(sa(fx->o)) must_== o
+      fx subst (fx -> o) must_== o
     }
 
-    "treat different variables as non-unifiable" in {
-      fx.substitute(sa(fy->o)) must_== fx
+    "treat different vars differently" in {
+      fx subst (fy -> o) must_== fx
     }
 
     "avoid occurs check" in {
-      fx.substitute(sa(x->fx)) must_== ffx
+      fx subst (x -> fx) must_== ffx
     }
   }
 
 
 
-  /*"Unification" should {
-
-    "succeed for two variables" in {
-      x.unify(y) must_== Some(Map(x -> y))
-    }
-
-    "succeed for a variable and a constant" in {
-      y.unify(o) must_== Some(Map(y -> o))
-    }
-
-    "return instantiations of the left argument" in {
-      o.unify(y) must_== Some(Map())
-    }
-    
-    "succeed for two equal constants" in {
-      o.unify(o1) must_== Some(Map())
-    }
-
-    "fail for two constants of same value from different domains" in {
-      o.unify(o2) must_== None
-    }
-
-    "suceed for two 'variant' functions" in {
-      fx.unify(fy) must_== Some(Map(x -> y))
-    }
-
-    "fail for a function and a constant" in {
-      fx.unify(o) must_== None
-    }
-    
-    "avoid occurs check" in {
-      x.unify(fx) must_== Some(Map(x -> fx))
-    }
-  }*/
-  
-  
-  
-  "All variables" should {
+  "All vars" should {
     
     "give a variable from a variable" in {
-      x.variables must_== List(x)
+      x.vars must_== List(x)
     }
     
     "give an empty list from a constant" in {
-      o.variables must_== List()
+      o.vars must_== List()
     }
 
     val gfxfy = Fun("g", List(fx,fy), num1a)
     
     "recurse deeply" in {
-      gfxfy.variables must_== List(x,y)
+      gfxfy.vars must_== List(x,y)
     }
 
     val gfxfx = Fun("g", List(fx,fx), num1a)
 
     "return a variable more than once if it occurs more than once" in {
-      gfxfx.variables must_== List(x,x)
+      gfxfx.vars must_== List(x,x)
     }
   }
 }

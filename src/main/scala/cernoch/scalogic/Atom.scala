@@ -3,80 +3,53 @@ package cernoch.scalogic
 import tools._
 
 /**
- *
- *
- * @param args
- * 
  * @author Radomir Cernoch (radomir.cernoch at gmail.com)
  */
 class Atom
-  [+S <: Term]
-  (val pred: String, val args: List[S]) {
+	(val pred: String, val args: List[Term])
+	extends WithArgs[Atom]
+	with Substituable[Atom] {
 
-  /**
-   * Translates all subterms using a dictionary
-   */
-  def substitute
-    (dict: Term => Option[Term])
-  = {
-    val sArg = Mef.map[Term,Term](args){_.substitute(dict)}
-    if (sArg.eq(args)) this else new Atom[Term](pred,sArg)
-  }
+	def subst(dict: Term => Option[Term])
+	= {
+		val sArg = args.mapConserve{_.subst(dict)}
+		if (sArg.eq(args)) this else Atom(pred,sArg)
+	}
 
-  /**
-   * Translates arguments using the dictionary
-   */
-  def mapAllArgs
-    [T <: Term]
-    (dict: Term => T)
-  = Atom(pred, args.map{dict(_)})
+	def mapArgs(dict: Term => Option[Term])
+	= {
+		val sArg = args.mapConserve{x => dict(x).getOrElse(x)}
+		if (sArg.eq(args)) this else Atom(pred,sArg)
+	}
 
-  /**
-   * Translates arguments that are found in the map
-   */
-  def mapSomeArg
-    [T >: S <: Term]
-    (dict: Term => Option[T])
-  = {
-    val sArg = Mef.map[S,T](args){x => dict(x).getOrElse(x)}
-    if (sArg.eq(args)) this else new Atom[T](pred,sArg)
-  }
+	override def toString
+	(b: StringBuilder,
+	 l: Labeler[Var,String],
+	 s: Boolean) {
+		b append pred
+		super.toString(b,l,s)
+	}
 
+	override def hashCode()
+	= pred.hashCode + 31 * args.hashCode
 
-  def variables = Term.variables(args)
-
-  def toShort(): String = toShort(Var.globalNames)
-  override def toString() = toString(Var.globalNames)
-
-  def toString(names: Labeler[Var,String])
-  = pred + StringUtils.mkStringIfNonEmpty(args.map{_.toString(names)})( "( ",", ",")" )
-
-  def toShort(names: Labeler[Var,String])
-  = pred + StringUtils.mkStringIfNonEmpty(args.map{_.toShort(names)})( "( ",", ",")" )
-
-  override def hashCode = pred.hashCode + 31 * args.hashCode
-  override def equals(o:Any) = o match {
-    case a:Atom[_] => pred == a.pred && args == a.args
+  override def equals(o:Any)
+	= o match {
+    case a:Atom =>
+			(pred == a.pred) &&
+			(args == a.args)
     case _ => false
-  }  
+  }
 }
 
 object Atom {
 
-  def apply
-    [T <: Term]
-    (p: String, a: List[T])
-  : Atom[T]
-  = new Atom[T](p,a)
+	def apply(p: String, a: List[Term])
+	: Atom = new Atom(p,a)
 
-  def apply
-    [T <: Term]
-    (p: String, a: T*)
-  : Atom[T]
-  = Atom(p, a.toList)
+	def apply(p: String, a: Term*)
+	: Atom = Atom(p, a.toList)
 
-  def unapply
-    [T <: Term]
-    (a: Atom[T])
-  = Some(a.pred, a.args)
+	def unapply(a: Atom)
+	= Some((a.pred,a.args))
 }

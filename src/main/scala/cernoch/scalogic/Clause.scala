@@ -1,120 +1,89 @@
 package cernoch.scalogic
 
-import collection.mutable.ArrayBuffer
 import tools.Labeler
-import tools.StringUtils.mkStringIfNonEmpty
+import collection.generic.Growable
+import tools.StringUtils._
 
 /**
  * Clause is a set or a list of positive and negative literals
  */
 class Clause
-  [+Head <: Iterable[Atom[Term]],
-   +Body <: Iterable[Atom[Term]]]
-  (val headAtoms: Head, val bodyAtoms: Body) {
+	[H<: Iterable[Atom], B<: Iterable[Atom]]
+	(val headAtoms: H, val bodyAtoms: B)
+	extends HasVariables {
 
-  override def hashCode = headAtoms.hashCode + 3 * bodyAtoms.hashCode
-  override def equals(o:Any) = o match {
-    case c:Clause[_,_] => (headAtoms == c.headAtoms) &&
-                          (bodyAtoms == c.bodyAtoms)
-    case r:AnyRef => this.eq(r)
-    case _ => false
-  }
+	override def hashCode = headAtoms.hashCode + 11 * bodyAtoms.hashCode
+	override def equals(o:Any) = o match {
+		case c:Clause[_,_] =>
+			(headAtoms == c.headAtoms) &&
+			(bodyAtoms == c.bodyAtoms)
+		case _ => false
+	}
 
-  def toShort(): String = toShort(Var.globalNames)
-  override def toString() = toString(Var.globalNames)
-
-  def toString(names: Labeler[Var,String])
-  = headAtoms.map{_.toString(names)}.mkString(" \\/ ") +
-    mkStringIfNonEmpty(
-      bodyAtoms.view.map{_.toString(names)})(
-      " <- ", " /\\ ", "") +
-    "."
-
-  def toShort(names: Labeler[Var,String])
-  = headAtoms.map{_.toShort(names)}.mkString(" \\/ ") +
-    mkStringIfNonEmpty(
-      bodyAtoms.view.map{_.toShort(names)})(
-      " <- ", " /\\ ", "") +
-    "."
-
-  def variables
+	override def toString
+	(sb: StringBuilder, names: Labeler[Var,String], short: Boolean)
   = {
+		if (!headAtoms.isEmpty)
+			(headAtoms, names, short) ::| " <- " into
+				sb join (""" \/ """)
 
-    val buf = new ArrayBuffer[Var]()
+		if (!bodyAtoms.isEmpty)
+			(bodyAtoms, names, short) into
+				sb join (""" /\ """)
 
-    def termVars(t: Term)
-    : Unit
-    = t match {
-      case _:Val[_] =>
-      case v:Var => buf += v
-      case f:Fun => f.args.foreach(termVars)
-    }
+		sb append "."
+	}
 
-    headAtoms.foreach(_.args.foreach(termVars))
-    bodyAtoms.foreach(_.args.foreach(termVars))
-
-    buf.toList
-  }
+	private[scalogic] def addVarsTo
+	(buffer: Growable[Var]) {
+		headAtoms.foreach{_.addVarsTo(buffer)}
+		bodyAtoms.foreach{_.addVarsTo(buffer)}
+	}
 }
+
+
 
 /**
  * Horn clause has at most 1 head atom
  */
 class Horn
-  [+Head <: Atom[Term],
-   +Body <: Iterable[Atom[Term]]]
-  (val head: Head, body: Body)
-    extends
-      Clause[Iterable[Head], Body](
-        if (head eq null) Iterable() else Iterable(head),
-        body
-      )
-  {}
+	[B <: Iterable[Atom]]
+	(val head: Atom, bodyAtoms: B)
+	extends Clause[Iterable[Atom],B](
+		if (head == null) Iterable() else Iterable(head),
+		bodyAtoms
+	)
 
 object Horn {
 
-  def appply
-    [H<:Atom[Term],
-     B<:Iterable[Atom[Term]]]
-    (head: H,
-     body: B)
-  = new Horn(head, body)
+	def apply
+	[B<:Iterable[Atom]]
+	(head: Atom, bodyAtoms: B)
+	= new Horn(head, bodyAtoms)
+
+	def apply[B<:Iterable[Atom]]
+	(body: B) = new Horn(null, body)
   
-  def apply
-    [B<:Iterable[Atom[Term]]]
-    (body: B)
-  = new Horn(null, body)
-  
-  def unapply
-    [H<:Atom[Term],
-     T<:Iterable[Atom[Term]]]
-    (c: Clause[Iterable[H],T])
-  = c.headAtoms.size match {
-      case 0 => Some(            null, c.bodyAtoms)
-      case 1 => Some(c.headAtoms.head, c.bodyAtoms)
-      case _ => None
-    }
+	def unapply[B<:Iterable[Atom]]
+	(c: Clause[Iterable[Atom],B])
+	= c.headAtoms.size match {
+		case 0 => Some(            null, c.bodyAtoms)
+		case 1 => Some(c.headAtoms.head, c.bodyAtoms)
+		case _ => None
+	}
 }
 
 
 /**
  * Body-less clause has 1 head atom and 0 body atoms
  */
-class BLC
-    [+H<:Atom[Term]]
-    (head:H)
-	extends Horn[H, Iterable[Nothing] ](head, Iterable()){ }
+class BLC(head:Atom) extends Horn(head, Iterable())
 
 object BLC {
 
-  def apply
-    [H <: Atom[Term]]
-    (head: H)
-  = new BLC(head)
+  def apply(head: Atom) = new BLC(head)
 
-  def unapply
-    [H <: Atom[Term]]
-    (c: Clause[Iterable[H],Iterable[Atom[Term]]])
+  def unapply(c: Clause[Iterable[Atom],Iterable[Atom]])
   = if (c.headAtoms.size == 1 && c.bodyAtoms.size == 0)
       Some(c.headAtoms.iterator.next) else None
 }

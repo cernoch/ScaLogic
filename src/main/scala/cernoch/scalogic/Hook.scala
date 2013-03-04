@@ -1,70 +1,45 @@
 package cernoch.scalogic
 
-import tools.{Mef, CircRef}
+import tools.StringUtils._
 
+trait Hook extends Substituable[Hook] {
 
-trait Hook {
-
-  def substitute
-    (dict: Term => Option[Term])
-  : Hook
-
-  def mapArgs
-    (dict: Term => Option[Term])
-  : Hook
-
-  def equivs
-    (s: Set[Btom[Term]])
-  : Set[Btom[Term]]
-  = s
+  def equivs(s: Set[Atom]): Set[Atom] = s
 
   def minSucc = 0
-
   def maxSucc: Option[Int] = None
 }
 
 
 object Determined extends Hook {
-  override def substitute(dict: Term => Option[Term]) = this
-  override def mapArgs(dict: Term => Option[Term]) = this
-
+  override def subst(dict: Term => Option[Term]) = this
   override def minSucc = 1
 }
 
 
 object Functional extends Hook {
-  override def substitute(dict: Term => Option[Term]) = this
-  override def mapArgs(dict: Term => Option[Term]) = this
-
+  override def subst(dict: Term => Option[Term]) = this
   override def maxSucc = Some(1)
 }
 
 
 class Permutable
-    (swappable: Set[Term])
+	(swappable: List[Term])
   extends Hook {
 
-  override def substitute
+  override def subst
     (dict: Term => Option[Term])
   = {
-    val sSwaps = Mef.map(swappable){_.substitute(dict)}
+    val sSwaps = swappable.mapConserve{_.subst(dict)}
     if (sSwaps == swappable) this else new Permutable(swappable)
   }
 
-  override def mapArgs(dict: Term => Option[Term])
-  = {
-    val sSwaps = Mef.map(swappable){x => dict(x).getOrElse(x)}
-    if (sSwaps == swappable) this else new Permutable(swappable)
-  } 
-
-  override def equivs
-    (s: Set[Btom[Term]])
-  = swappable
-    .toList.permutations
-    .map { CircRef(_) }
-    .map { map => (x: Term) => map.get(x) }
-    .map { dict => s.map { _.substitute(dict) } }
-    .flatten.toSet
+	override def equivs(atoms: Set[Atom])
+	= swappable.partitions.flatMap{_.map{
+		_.permutations.toList.cartesian
+			.foldLeft(Map[Term,Term]()){_ ++ _.circularMap}
+		}}
+		.flatMap{dict => atoms.view.map{_.subst{dict.get(_)}}}.toSet
 
   override def hashCode = swappable.hashCode()
 
@@ -72,34 +47,30 @@ class Permutable
 }
 
 
-class ForceNonEq(
-    disjoint: Set[Term],
-    possible: Boolean = true)
+class ForceNonEq
+	(disjoint: List[Term])
   extends Hook {
 
-  private def derive(newDisj: Set[Term])
-  = {
-    val sizeFix = disjoint.size == newDisj.size
-    if (newDisj == disjoint && sizeFix)
-      this else new ForceNonEq(newDisj, sizeFix)
-  }
-  
-  override def substitute
+  private def derive
+	(newDisj: List[Term])
+  = if (newDisj == disjoint)
+      this else new ForceNonEq(newDisj)
+
+	private def possible
+	= disjoint.distinct.size == disjoint.size
+
+  override def subst
     (dict: Term => Option[Term])
-  = derive(Mef.map(disjoint){_.substitute(dict)})
+  = derive(disjoint.mapConserve{_.subst(dict)})
 
-
-  override def mapArgs
-    (dict: Term => Option[Term])
-  = derive(Mef.map(disjoint){x => dict(x).getOrElse(x)})
-
-  override def maxSucc = if (possible) None else Some(0)
+  override def maxSucc
+	= if (possible) None else Some(0)
 
   override def hashCode
-  = (if (possible) 1 else -1) * disjoint.hashCode()
+  = disjoint.hashCode()
 
   override def toString
   = "ForceNonEq" +
     (if (possible) "" else "[tooLate]") +
-    "(" + disjoint.toString + ")"
+    ("("|:: disjoint.map{_.toString()} ::| ")" join ",")
 }

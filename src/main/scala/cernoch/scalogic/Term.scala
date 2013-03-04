@@ -1,133 +1,119 @@
 package cernoch.scalogic
 
-import tools.NameGen.ALPHABET
-import scala.math.{BigInt, BigDecimal => BigDec}
-import tools.{StringUtils, Labeler, Mef}
+import tools.Labeler
+import tools.StringUtils._
+import tools.NameGen.Alphabet
+import collection.generic.Growable
+import math.{BigDecimal => BigDec, BigInt}
 
 /**
  * Term is either a constant value, a function or a variable
  */
-abstract sealed class Term(val dom:Domain[_]) {
+abstract sealed class Term
+	(val dom: Domain)
+	extends HasVariables
+	with Substituable[Term] {
 
-  /**
-   * Substitution algorithm
-   * @param dict Mapping from replaced terms to their replacements
-   * @return All subterms in map's keys replaced by the values
-   */
-  def substitute
-    (dict: Term => Option[Term])
-  : Term
-  = dict(this).getOrElse{ this match {
-      case f:Fun => f.mefMap{_.substitute(dict)}
-      case fft => fft
-    } }
+	/**
+	 * Substitution algorithm
+	 *
+	 * @param dict Mapping from replaced terms to their replacements
+	 * @return All subterms in map's keys replaced by the values
+	 */
+	def subst(dict: Term => Option[Term])
+	= dict(this).getOrElse(this)
 
-  /**
-   * All variables in this term
-   * @return List of all subterms that are variables
-   */
-  def variables = this match {
-    case _:Val[_] => List()
-    case v:Var => List(v)
-    case f:Fun => Term.variables(f.args)
-  }
-
-  /**
-   * String representation of this term (using global variable names)
-   *
-   * Note that since all variables must keep unique names,
-   * this function keeps their references forever.
-   */
-  override def toString = toString(Var.globalNames)
-
-  /**
-   * String representation of this term (using scoped variable names)
-   */
-  def toString(names: Labeler[Var,String]) = toReallyShort(names) + dom.toString
-  def toShort(names: Labeler[Var,String]) = toReallyShort(names) + dom.toShort
-  def toReallyShort(names: Labeler[Var,String]) : String
+  override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		if (!short)
+			sb.append(":")
+				.append(dom.name)
+	}
 }
 
 
-
-object Term {
-
-  /**
-   * All variables in the list of terms
-   * @return List of all subterms that are variables
-   */
-  def variables
-    (l:List[Term])
-  : List[Var]
-  = l match {
-      case Nil => List()
-      case head :: tail => head.variables ++ variables(tail)
-    }
-}
 
 /**
  * Function-free term
  */
-abstract sealed class FFT(dom:Domain[_]) extends Term(dom) {}
+sealed abstract class FFT(dom: Domain) extends Term(dom)
 
 /**
- * Variable can be substituted or unified
+ * Variable
  */
-final class Var(dom:Domain[_]) extends FFT(dom) {
-  def toReallyShort(names: Labeler[Var,String]) = names(this)
+final class Var(dom: Domain)
+	extends FFT(dom) {
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		sb.append(names(this))
+		super.toString(sb, names, short)
+	}
+
+	private[scalogic] def addVarsTo
+	(buffer: Growable[Var]) { buffer += this }
 }
 
 object Var {
-  val globalNames = new Labeler[Var,String](ALPHABET)
+	val globalNames = Labeler[Var](Alphabet)
 
-  def apply[T<:Term](name:String, dom:Domain[_]) = globVars((name,dom))
-  private val globVars = new Labeler[(String,Domain[_]),Var](d => {
-    new Var(d._2)
-  })
+	def apply(name:String, dom:Domain)
+	: Var = globalNames.inv(name, Var(dom))
 
-  def apply[T<:Term](d:Domain[_]) = new Var(d)
-  def unapply(s:Var) = Some(s.dom)
+	def apply(d:Domain) = new Var(d)
 }
 
 /**
  * Function value is a symbol and a list of arguments
  */
 final class Fun
-	(val name: String, val args:List[Term], dom:Domain[_])
-	extends Term(dom) {
+	(val name: String, val args: List[Term], dom: Domain)
+	extends Term(dom) with WithArgs[Fun] {
 
-  def toReallyShort(names: Labeler[Var,String])
-  = name + args.map{_.toString(names)}.mkString("(", ",", ")")
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		sb.append(name)
+		super.toString(sb, names, short)
+	}
 
-  override def hashCode
-        = name.hashCode
-    + 7 * args.hashCode
-    + 31 * dom.hashCode
-    
-  override def equals(o:Any) = o match {
-    case f:Fun =>
-      name == f.name &&
-      args == f.args &&
-       dom == f.dom
-    case _ => false
-  }
-  
-  private[scalogic] def mefMap
-    (f: Term => Term)
-  = {
-      val mappedArgs = Mef.map[Term,Term](args)(f)
-      if (mappedArgs eq args)
-        this else new Fun(name, mappedArgs, dom)
-    }
+	override def hashCode
+	      = name.hashCode
+	  + 7 * args.hashCode
+	  + 31 * dom.hashCode
+
+	override def equals(o:Any) = o match {
+	  case f:Fun =>
+	    name == f.name &&
+	    args == f.args &&
+	     dom == f.dom
+	  case _ => false
+	}
+
+	override def subst
+	(dict: Term => Option[Term])
+	= dict(this).getOrElse({
+		val mapArgs = args.mapConserve{_.subst(dict)}
+		if (mapArgs eq args) this else Fun(name, mapArgs, dom)
+	})
+
+	def mapArgs
+	(dict: (Term) => Option[Term])
+	= {
+		val sArgs = args.mapConserve{i => dict(i).getOrElse(i)}
+		if (sArgs eq args) this else Fun(name, sArgs, dom)
+	}
 }
 
 object Fun {
   def apply
-    (name:String, args:List[Term], dom:Domain[_])
+  (name: String, args: List[Term], dom:Domain)
   = new Fun(name, args, dom)
-  
-  def unapply(f:Fun)
-  = Some((f.name,f.args,f.dom))
   
   object args {
     def unapplySeq(f:Fun) = Some(f.args)
@@ -137,47 +123,43 @@ object Fun {
 /**
  * Constant value
  */
-abstract sealed class Val[+T]
-    (dom:Domain[T]) extends FFT(dom) {
-  
-  def get: T
+class Val
+	(val value: Any, dom: Domain)
+	extends FFT(dom) {
 
-  def toReallyShort(names: Labeler[Var,String])
-  = if (get == null) "NULL" else {
-    val str = get.toString
-    if (str matches "[a-z][a-zA-Z0-9]*")
-      str else "'" + str.replaceAll("'", "\\'") + "'"
-  }
+	private[scalogic] def addVarsTo
+	(buffer: Growable[Var]) {}
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean)
+	= ident(value)
+
+	override def hashCode = dom.hashCode() +
+		( if (value == null) 0 else value.hashCode() )
 
 
-  override def hashCode = (if (get == null) 0 else get.hashCode) + 7 * dom.hashCode
-  override def equals(o:Any) = o match {
-    case v:Val[_] => get == v.get && dom == v.dom
+	override def equals(o:Any) = o match {
+    case v:Val => value == v.value && dom == v.dom
     case _ => false
   }
 }
 
 object Val {
-  def apply(v:String, d:CatDom) = new Cat(v,d)
-  def apply(v:String, d:String) = new Cat(v, CatDom(d))
+	def apply(v:String, d:Domain) = new Cat(v,d)
+	def apply(v:String, d:Domain with Ordering[String]) = new Ord(v,d)
 
-  def apply(v:BigInt, d:NumDom) = new Num(v,d)
-  def apply(v:Int,    d:NumDom) = new Num(BigInt(v),d)
-  def apply(v:BigInt, d:String) = new Num(v,NumDom(d))
-  def apply(v:Int,    d:String) = new Num(BigInt(d),NumDom(d))
+	def apply(v:Int,    d:Domain with Integral[Int]) = new Num(v,d)
+	def apply(v:Long,   d:Domain with Integral[Long]) = new Num(v,d)
+	def apply(v:BigInt, d:Domain with Integral[BigInt]) = new Num(v,d)
 
-  def apply(v:BigDec, d:DecDom) = new Dec(v,d)
-  def apply(v:Double, d:DecDom) = new Dec(BigDec(v),d)
-  def apply(v:BigDec, d:String) = new Dec(v,DecDom(d))
-  def apply(v:Double, d:String) = new Dec(BigDec(v),DecDom(d))
-
-  def unapply[T](v:Val[T]) = Some((v.get, v.dom))
+	def apply(v:Float,  d:Domain with Fractional[Float]) = new Dec(v,d)
+	def apply(v:Double, d:Domain with Fractional[Double]) = new Dec(v,d)
+	def apply(v:BigDec, d:Domain with Fractional[BigDec]) = new Dec(v,d)
 }
 
-final class Num(val v:BigInt, override val dom:NumDom) extends Val[BigInt](dom) { def get = v }
-final class Dec(val v:BigDec, override val dom:DecDom) extends Val[BigDec](dom) { def get = v }
-final class Cat(val v:String, override val dom:CatDom) extends Val[String](dom) { def get = v }
-
-object Cat { def unapply(v:Cat) = Some(v.get) }
-object Num { def unapply(v:Num) = Some(v.get) }
-object Dec { def unapply(v:Dec) = Some(v.get) }
+class Cat[T](s: T, d: Domain) extends Val(s,d) { def get = Option(s) }
+class Ord[T](s: T, override val dom: Domain with Ordering[T]) extends Cat[T](s,dom)
+class Num[T](s: T, override val dom: Domain with Integral[T]) extends Val(s,dom) { def get = Option(s) }
+class Dec[T](s: T, override val dom: Domain with Fractional[T]) extends Val(s,dom) { def get = Option(s) }
