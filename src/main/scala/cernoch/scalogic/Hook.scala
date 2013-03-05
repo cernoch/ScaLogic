@@ -35,11 +35,13 @@ class Permutable
   }
 
 	override def equivs(atoms: Set[Atom])
-	= swappable.partitions.flatMap{_.map{
-		_.permutations.toList.cartesian
-			.foldLeft(Map[Term,Term]()){_ ++ _.circularMap}
-		}}
-		.flatMap{dict => atoms.view.map{_.subst{dict.get(_)}}}.toSet
+	= (List(Map[Term,Term]()) :: (swappable.partitions.toList.map{
+		_.filter{_.size > 1} // Partitions of size 1 do not cause term mapping
+		 .map{_.permutations.toList}
+		 .cartesian.filter{_.size > 0}
+		 .map{_.foldLeft(Map[Term,Term]()){_ ++ _.circularMap}
+		}})).toSet.flatten
+		.flatMap{dict => atoms.view.map{_.subst{dict.get(_)}}}
 
   override def hashCode = swappable.hashCode()
 

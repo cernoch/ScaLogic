@@ -50,7 +50,7 @@ class ModeTest extends Specification {
 		"have 1 instantiation at most" in {
 			Mode(axyz).forceNonEq(x,y)
 				.subst(x -> y)
-				.maxSucc must_== Some(1)
+				.maxSucc must_== Some(0)
 		}
 	}
 }

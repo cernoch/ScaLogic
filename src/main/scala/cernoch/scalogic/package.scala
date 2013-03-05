@@ -41,7 +41,7 @@ object `package` { pac =>
 
 	/** All subsets */
 	def subsets[T](l: Iterable[T]) = {
-		val buf = ListBuffer(List[T]())
+		val buf = ListBuffer[List[T]]()
 		for (i <- l) {
 			buf ++= buf.map{i :: _}
 			buf += List(i)
@@ -51,14 +51,14 @@ object `package` { pac =>
 
 	/** All equivalence relations */
 	def partitions[T](l: Iterable[T]) = {
-		val buf = ListBuffer[List[List[T]]]()
+		var eqRels = ListBuffer[List[List[T]]](Nil)
 		for (i <- l) {
-			val createdSepRel = buf.map{List(i) :: _}
-			val addToExisting = buf.flatMap{forEachOne(_){i :: _}}
-			buf ++= createdSepRel
-			buf ++= addToExisting
+			val iInLst = List(i)
+			val wasAdd = eqRels.flatMap{forEachOne(_){i :: _}}
+			val newGrp = eqRels.map{iInLst :: _}
+			eqRels = wasAdd ++ newGrp
 		}
-		buf.toList
+		eqRels.toList
 	}
 
 	/** Iterable tools */
@@ -74,8 +74,9 @@ object `package` { pac =>
 	implicit def listTools[T](l: List[T]) = new Object {
 		/** Creates a circular map from a list */
 		def circularMap = l match {
-			case h::t => pac.circularMap(h,t)
-			case _ => throw new IllegalArgumentException("Iterable must not be empty!")
+			case h::t => pac.circularMap(h,l)
+			case _ => throw new NoSuchElementException(
+				"Iterable must not be empty!")
 		}
 	}
 

@@ -28,17 +28,19 @@ class ToolsTest extends Specification {
 
 	"Subsets" should {
 		"list all subsets" in {
-			List(1,2).subsets must_==
-				List(List(2,1), List(2), List(1), List())
+			List(1,2).subsets.toSet must_==
+				Set(List(1), List(2), List(2,1))
 		}
 	}
 
 	"Equivalence relations" should {
 		"list all of them" in {
-			List(1,2).partitions must_== List(
-				List(List(1), List(2)),
-				List(List(1,2))
-			)
+			List(1,2).partitions
+				.map{_.map{_.toSet}.toSet}.toSet must_==
+				Set(
+					Set(Set(1),Set(2)),
+					Set(Set(1,2))
+				)
 		}
 	}
 
