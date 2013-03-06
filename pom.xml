@@ -1,71 +1,71 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-            http://maven.apache.org/maven-v4_0_0.xsd">
+          http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>cernoch.scalogic</groupId>
-  <artifactId>scalogic_${scala.version}</artifactId>
-  <version>${scalogic.version}</version>
-  <name>${project.artifactId}</name>
-  <description>First-order logic representation in Scala</description>
-  <inceptionYear>2012</inceptionYear>
-  <licenses><license><name>MIT-License</name>
-      <url>http://copyfree.org/licenses/mit/license.txt</url>
-      <distribution>repo</distribution></license></licenses>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>cernoch.scalogic</groupId>
+	<artifactId>scalogic_${scala.version}</artifactId>
+	<version>${scalogic.version}</version>
+	<name>${project.artifactId}</name>
+	<description>First-order logic representation in Scala</description>
+	<inceptionYear>2012</inceptionYear>
+	<licenses><license><name>MIT-License</name>
+		<url>http://copyfree.org/licenses/mit/license.txt</url>
+		<distribution>repo</distribution></license></licenses>
 
-  <properties>
-    <encoding>UTF-8</encoding>
-    <scala.version>2.9</scala.version>
-    <scalogic.version>0.9</scalogic.version>
-    <maven.compiler.source>1.5</maven.compiler.source>
-    <maven.compiler.target>1.5</maven.compiler.target>
-  </properties>
+	<properties>
+		<encoding>UTF-8</encoding>
+		<scala.version>2.10</scala.version>
+		<scalogic.version>0.9</scalogic.version>
+		<maven.compiler.source>1.5</maven.compiler.source>
+		<maven.compiler.target>1.5</maven.compiler.target>
+	</properties>
 
-  <dependencies>
-    <!-- Main -->
-    <dependency><groupId>org.scala-lang</groupId>
-        <artifactId>scala-library</artifactId>
-        <version>${scala.version}.2</version></dependency>
-    <dependency><groupId>org.clapper</groupId>
-        <artifactId>grizzled-slf4j_${scala.version}.1</artifactId>
-        <version>0.6.10</version></dependency>
-    <!-- Test -->
-    <dependency><groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.8.1</version><scope>test</scope></dependency>
-    <dependency><groupId>org.specs2</groupId>
-        <artifactId>specs2_${scala.version}.2</artifactId>
-        <version>1.12.4.1</version><scope>test</scope></dependency>
-  </dependencies>
+	<dependencies>
+		<!-- Main -->
+		<dependency><groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scala.version}.0</version></dependency>
+		<dependency><groupId>org.clapper</groupId>
+			<artifactId>grizzled-slf4j_${scala.version}</artifactId>
+			<version>1.0.1</version></dependency>
+		<!-- Test -->
+		<dependency><groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version><scope>test</scope></dependency>
+		<dependency><groupId>org.specs2</groupId>
+			<artifactId>specs2_${scala.version}</artifactId>
+			<version>1.14</version><scope>test</scope></dependency>
+	</dependencies>
 
-  <build>
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
-    <plugins>
-      <!-- Scala compiler -->
-      <plugin><groupId>org.scala-tools</groupId>
-        <artifactId>maven-scala-plugin</artifactId>
-        <version>2.15.0</version>
-        <executions><execution>
-            <goals><goal>compile</goal><goal>testCompile</goal></goals>
-            <configuration><args>
-                <arg>-deprecation</arg><arg>-make:transitive</arg>
-                <arg>-dependencyfile</arg>
-                <arg>${project.build.directory}/.scala_dependencies</arg></args>
-            </configuration>
-        </execution></executions>
-      </plugin>
-      <!-- Test executor -->
-      <plugin><groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.6</version>
-        <configuration><useFile>false</useFile>
-          <disableXmlReport>true</disableXmlReport>
-          <includes><include>**/*Test.*</include>
-              <include>**/*Suite.*</include></includes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+	<build>
+		<sourceDirectory>src/main/scala</sourceDirectory>
+		<testSourceDirectory>src/test/scala</testSourceDirectory>
+		<plugins>
+			<!-- Scala compiler -->
+			<plugin><groupId>org.scala-tools</groupId>
+				<artifactId>maven-scala-plugin</artifactId>
+				<version>2.15.0</version>
+				<executions><execution>
+					<goals><goal>compile</goal><goal>testCompile</goal></goals>
+					<configuration><args>
+						<arg>-deprecation</arg><arg>-make:transitive</arg>
+						<arg>-dependencyfile</arg>
+						<arg>${project.build.directory}/.scala_dependencies</arg></args>
+					</configuration>
+				</execution></executions>
+			</plugin>
+			<!-- Test executor -->
+			<plugin><groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.6</version>
+				<configuration><useFile>false</useFile>
+					<disableXmlReport>true</disableXmlReport>
+					<includes><include>**/*Test.*</include>
+						<include>**/*Suite.*</include></includes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

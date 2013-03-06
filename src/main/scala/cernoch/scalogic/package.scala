@@ -3,7 +3,9 @@ package cernoch.scalogic
 import collection.mutable.ListBuffer
 import collection.mutable
 
-object `package` { pac =>
+object `package` {
+	private def pac = this
+
 	implicit def atom2blc (a: Atom) = BLC(a)
 	implicit def blc2atom (m: BLC)  = m.head
 
