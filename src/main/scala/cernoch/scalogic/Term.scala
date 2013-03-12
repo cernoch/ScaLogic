@@ -133,8 +133,10 @@ class Val
 	override def toString
 	(b: StringBuilder,
 	 n: Labeler[Var,String],
-	 s: Boolean)
-	= b.append(ident(value))
+	 s: Boolean) {
+		b.append(ident(value))
+		super.toString(b,n,s)
+	}
 
 	override def hashCode = dom.hashCode() +
 		( if (value == null) 0 else value.hashCode() )
