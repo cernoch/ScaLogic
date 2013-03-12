@@ -1,10 +1,14 @@
 package cernoch.scalogic
 
+import collection.generic.Growable
+import tools.Labeler
+
 class Mode(
 		val atom: Atom,
 		val iVar: Set[Var],
 		val hook: Set[Hook])
-	extends Substituable[Mode] {
+	extends Substituable[Mode]
+	with HasVariables {
 
 	def equivs = hook
 		.foldLeft(Set(atom)){
@@ -43,6 +47,46 @@ class Mode(
 	(a: Var, b:Var, c: Var*)
 	= new Mode(atom, iVar,
 		hook + new ForceNonEq(a :: b :: c.toList) )
+
+	private[scalogic] def addVarsTo
+	(buffer: Growable[Var])
+	= atom.addVarsTo(buffer)
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+
+		sb.append("Mode{")
+
+		if (iVar.size > 0) {
+			sb.append(" in=[")
+
+			var first = true
+			for (v <- iVar) {
+				if (!first) sb.append(",")
+				v.toString(sb,names,short)
+				first = false
+			}
+			sb.append("]")
+		}
+
+		sb.append(" atom = (")
+		atom.toString(sb, names, short)
+		sb.append(")")
+
+		if (hook.size > 0) {
+			sb.append(" hooks = [")
+			var first = true
+			for (h <- hook) {
+				if (!first) sb.append(",")
+				h.toString(sb,names,short)
+				first = false
+			}
+			sb.append("]")
+		}
+		sb.append("}")
+	}
 }
 
 object Mode {

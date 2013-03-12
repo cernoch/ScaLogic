@@ -95,4 +95,11 @@ class TermTest extends Specification {
       gfxfx.vars must_== List(x,x)
     }
   }
+
+	"Values" should {
+
+		"contain itself when using toString()" in {
+			o.toString().contains("1")
+		}
+	}
 }

@@ -26,8 +26,32 @@ class Atom
 	(b: StringBuilder,
 	 l: Labeler[Var,String],
 	 s: Boolean) {
-		b append pred
-		super.toString(b,l,s)
+
+		args.size match {
+
+			case 1 => {
+				b.append("(")
+				b.append(pred)
+				b.append(" ")
+				args(0).toString(b,l,s)
+				b.append(")")
+			}
+
+			case 2 => {
+				b.append("(")
+				args(0).toString(b,l,s)
+				b.append(" ")
+				b.append(pred)
+				b.append(" ")
+				args(1).toString(b,l,s)
+				b.append(")")
+			}
+
+			case _ => {
+				b append pred
+				super.toString(b,l,s)
+			}
+		}
 	}
 
 	override def hashCode()

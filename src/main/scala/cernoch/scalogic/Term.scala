@@ -131,10 +131,10 @@ class Val
 	(buffer: Growable[Var]) {}
 
 	override def toString
-	(sb: StringBuilder,
-	 names: Labeler[Var,String],
-	 short: Boolean)
-	= ident(value)
+	(b: StringBuilder,
+	 n: Labeler[Var,String],
+	 s: Boolean)
+	= b.append(ident(value))
 
 	override def hashCode = dom.hashCode() +
 		( if (value == null) 0 else value.hashCode() )

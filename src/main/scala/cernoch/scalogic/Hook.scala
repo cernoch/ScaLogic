@@ -1,8 +1,10 @@
 package cernoch.scalogic
 
+import tools.Labeler
 import tools.StringUtils._
+import collection.generic.Growable
 
-trait Hook extends Substituable[Hook] {
+trait Hook extends Substituable[Hook] with HasVariables {
 
   def equivs(s: Set[Atom]): Set[Atom] = s
 
@@ -14,12 +16,32 @@ trait Hook extends Substituable[Hook] {
 object Determined extends Hook {
   override def subst(dict: Term => Option[Term]) = this
   override def minSucc = 1
+
+	private[scalogic] def
+	addVarsTo(buffer: Growable[Var]) {}
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		sb.append("Determined")
+	}
 }
 
 
 object Functional extends Hook {
   override def subst(dict: Term => Option[Term]) = this
   override def maxSucc = Some(1)
+
+	private[scalogic] def
+	addVarsTo(buffer: Growable[Var]) {}
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		sb.append("Functional")
+	}
 }
 
 
@@ -45,7 +67,26 @@ class Permutable
 
   override def hashCode = swappable.hashCode()
 
-  override def toString = "Permutable(" + swappable + ")"
+	private[scalogic] def
+	addVarsTo(buffer: Growable[Var])
+	{ buffer ++= swappable.collect{case (v:Var) => v} }
+
+
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		sb.append("Permutable{")
+
+		var first = true
+		for (v <- swappable) {
+			if (first) sb.append(",")
+			v.toString(sb,names,short)
+			first = false
+		}
+		sb.append("}")
+	}
 }
 
 
@@ -75,4 +116,26 @@ class ForceNonEq
   = "ForceNonEq" +
     (if (possible) "" else "[tooLate]") +
     ("("|:: disjoint.map{_.toString()} ::| ")" join ",")
+
+
+	private[scalogic] def
+	addVarsTo(buffer: Growable[Var])
+	{ buffer ++= disjoint.collect{case (v:Var) => v} }
+
+	override def toString
+	(sb: StringBuilder,
+	 names: Labeler[Var,String],
+	 short: Boolean) {
+		sb.append("ForceNonEq")
+		if (!possible) sb.append("[tooLate]")
+		sb.append("[")
+
+		var first = true
+		for (v <- disjoint) {
+			if (first) sb.append(",")
+			v.toString(sb,names,short)
+			first = false
+		}
+		sb.append("]")
+	}
 }

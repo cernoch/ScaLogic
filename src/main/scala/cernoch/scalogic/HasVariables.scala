@@ -35,10 +35,12 @@ trait HasVariables {
 	 * this function keeps their references forever
 	 * and may lead to "memory leaks".
 	 */
-	def toString(short: Boolean)
+	def toString
+	(short: Boolean,
+	 names: Labeler[Var,String] = Var.globalNames)
 	: String = {
 		val sb = new StringBuilder()
-		toString(sb, Var.globalNames, short)
+		toString(sb, names, short)
 		sb.toString()
 	}
 
