@@ -8,10 +8,12 @@ object StringUtils {
 	val SimpleString = "[a-zA-Z0-9_]+".r
 
 	def ident(o: Any)
-	= o.toString match {
+	= o match {
 		case null => "NULL"
-		case s@SimpleString() => s
-		case s => "'" + s.replaceAllLiterally("'", "\\" + "'") + "'"
+		case some => some.toString() match {
+			case s@SimpleString() => s
+			case s => "'" + s.replaceAllLiterally("'", "\\" + "'") + "'"
+		}
 	}
 
 	@Deprecated
