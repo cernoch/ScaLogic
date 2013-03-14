@@ -57,13 +57,13 @@ class Atom
 	override def hashCode()
 	= pred.hashCode + 31 * args.hashCode
 
-  override def equals(o:Any)
+	override def equals(o:Any)
 	= o match {
-    case a:Atom =>
+		case a:Atom =>
 			(pred == a.pred) &&
-			(args == a.args)
-    case _ => false
-  }
+				(args == a.args)
+		case _ => false
+	}
 }
 
 object Atom {

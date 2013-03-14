@@ -7,14 +7,14 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ModeTest extends Specification {
 
-  val d = IntDom("num1")
+	val d = IntDom("num1")
 
-  val x = Var(d)
-  val y = Var(d)
-  val z = Var(d)
+	val x = Var(d)
+	val y = Var(d)
+	val z = Var(d)
 
-  val one = Val(1,d)
-  val two = Val(2,d)
+	val one = Val(1,d)
+	val two = Val(2,d)
 
 	val axyz: Mode = Atom("a", x,y,z)
 
@@ -34,14 +34,14 @@ class ModeTest extends Specification {
 		"iterate over all permutations" in {
 			axyz.permutable(x,y,z)
 				.equivs must_==
-			Set(
-				Atom("a", x,y,z),
-				Atom("a", y,z,x),
-				Atom("a", z,x,y),
-				Atom("a", z,y,x),
-				Atom("a", y,x,z),
-				Atom("a", x,z,y)
-			)
+				Set(
+					Atom("a", x,y,z),
+					Atom("a", y,z,x),
+					Atom("a", z,x,y),
+					Atom("a", z,y,x),
+					Atom("a", y,x,z),
+					Atom("a", x,z,y)
+				)
 		}
 
 		"can have arbitrary cycles" in {
@@ -49,11 +49,11 @@ class ModeTest extends Specification {
 				.permutable(x,y)
 				.permutable(y,z)
 				.equivs must_==
-			Set(
-				Atom("a", x,y,z),
-				Atom("a", y,x,z),
-				Atom("a", x,z,y)
-			)
+				Set(
+					Atom("a", x,y,z),
+					Atom("a", y,x,z),
+					Atom("a", x,z,y)
+				)
 		}
 	}
 

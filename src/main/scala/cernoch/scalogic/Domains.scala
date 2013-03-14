@@ -157,8 +157,8 @@ object BigIntDom {
 
 
 class DateDom
-(domName: String,
- dateFmt: DateFormat)
+	(domName: String,
+	 dateFmt: DateFormat)
 	extends Domain with DateDom.DateIsIntegral {
 
 	def name = domName

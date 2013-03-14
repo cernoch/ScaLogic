@@ -16,7 +16,7 @@ trait WithArgs[Self]
 
 	/**
 	 * String representation of this term (using scoped variable names)
-	 * */
+	 */
 	override def toString
 	(sb: StringBuilder,
 	 names: Labeler[Var,String],

@@ -7,24 +7,24 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ToolsTest extends Specification {
 
-  "Circular reference" should {
+	"Circular reference" should {
 
-    "create a circular reference map" in {
-      List(1,2,3).circularMap  must_== Map(1->2, 2->3, 3->1)
-    }
+		"create a circular reference map" in {
+			List(1,2,3).circularMap  must_== Map(1->2, 2->3, 3->1)
+		}
 
-    "work if list has 1 element" in {
-      List("x").circularMap must_== Map("x" -> "x")
-    }
+		"work if list has 1 element" in {
+			List("x").circularMap must_== Map("x" -> "x")
+		}
 
-    "work if list has 2 elements" in {
-      List('x','y').circularMap must_== Map('x'->'y', 'y'->'x')
-    }
+		"work if list has 2 elements" in {
+			List('x','y').circularMap must_== Map('x'->'y', 'y'->'x')
+		}
 
-    "fail on empty list" in {
-      Nil.circularMap must throwAn[NoSuchElementException]
-    }
-  }
+		"fail on empty list" in {
+			Nil.circularMap must throwAn[NoSuchElementException]
+		}
+	}
 
 	"Subsets" should {
 

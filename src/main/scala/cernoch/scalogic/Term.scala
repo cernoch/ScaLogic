@@ -11,7 +11,7 @@ import java.util.Date
  * Term is either a constant value, a function or a variable
  */
 abstract sealed class Term
-	(val dom: Domain)
+(val dom: Domain)
 	extends HasVariables
 	with Substituable[Term] {
 
@@ -24,7 +24,7 @@ abstract sealed class Term
 	def subst(dict: Term => Option[Term])
 	= dict(this).getOrElse(this)
 
-  override def toString
+	override def toString
 	(sb: StringBuilder,
 	 names: Labeler[Var,String],
 	 short: Boolean) {
@@ -72,7 +72,7 @@ object Var {
  * Function value is a symbol and a list of arguments
  */
 final class Fun
-	(val name: String, val args: List[Term], dom: Domain)
+(val name: String, val args: List[Term], dom: Domain)
 	extends Term(dom) with WithArgs[Fun] {
 
 	override def toString
@@ -84,16 +84,16 @@ final class Fun
 	}
 
 	override def hashCode
-	      = name.hashCode
-	  + 7 * args.hashCode
-	  + 31 * dom.hashCode
+	= name.hashCode
+	+ 7 * args.hashCode
+	+ 31 * dom.hashCode
 
 	override def equals(o:Any) = o match {
-	  case f:Fun =>
-	    name == f.name &&
-	    args == f.args &&
-	     dom == f.dom
-	  case _ => false
+		case f:Fun =>
+			name == f.name &&
+				args == f.args &&
+				dom == f.dom
+		case _ => false
 	}
 
 	override def subst
@@ -109,13 +109,13 @@ final class Fun
 }
 
 object Fun {
-  def apply
-  (name: String, args: List[Term], dom:Domain)
-  = new Fun(name, args, dom)
-  
-  object args {
-    def unapplySeq(f:Fun) = Some(f.args)
-  }
+	def apply
+	(name: String, args: List[Term], dom:Domain)
+	= new Fun(name, args, dom)
+
+	object args {
+		def unapplySeq(f:Fun) = Some(f.args)
+	}
 }
 
 /**
@@ -142,9 +142,9 @@ abstract class Val(dom: Domain) extends FFT(dom) {
 
 
 	override def equals(o:Any) = o match {
-    case v:Val => value == v.value && dom == v.dom
-    case _ => false
-  }
+		case v:Val => value == v.value && dom == v.dom
+		case _ => false
+	}
 }
 
 object Val {
@@ -176,9 +176,7 @@ object StrVal {
 }
 
 
-class IntVal[I]
-	(val value:I, override val
-	dom: Domain with Integral[I])
+class IntVal[I](val value:I, override val dom: Domain with Integral[I])
 	extends Val(dom) {
 	type Type = I
 }
@@ -192,8 +190,7 @@ object IntVal {
 	}
 }
 
-class DecVal[F](val value:F, override val
-	dom: Domain with Fractional[F])
+class DecVal[F](val value:F, override val dom: Domain with Fractional[F])
 	extends Val(dom) {
 	type Type = F
 }
@@ -213,7 +210,6 @@ object NumVal {
 	= o.asInstanceOf[Option[(T,Numeric[T])] forSome {type T}]
 
 	def unapply(t:Val)
-	: Option[(T,Numeric[T])] forSome {type T}
 	= t match {
 		case DecVal(v,t) => cast(Some(v,t))
 		case IntVal(v,t) => cast(Some(v,t))
