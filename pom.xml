@@ -91,5 +91,12 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<extensions>
+			<!-- SCP connector -->
+			<extension><groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>1.0</version>
+			</extension>
+		</extensions>  
 	</build>
 </project>
