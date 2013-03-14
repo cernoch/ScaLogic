@@ -18,16 +18,19 @@
 		<maven.compiler.target>1.5</maven.compiler.target>
 	</properties>
 
-	<scm>
-		<url>https://github.com/cernoch/ScaLogic</url>
+	<scm><url>https://github.com/cernoch/ScaLogic</url>
 		<connection>scm:git:https://github.com/cernoch/ScaLogic.git</connection>
 		<developerConnection>scm:git:git@github.com:cernoch/ScaLogic.git</developerConnection>
-	  <tag>HEAD</tag>
-  </scm>
-
+		<tag>HEAD</tag>
+	</scm>
 	<distributionManagement><repository><id>heartofgold</id>
 		<url>scp://heartofgold.endofinternet.org:2222/srv/maven2</url>
 	</repository></distributionManagement>
+	<repositories>
+		<repository><id>heartofgold</id>
+			<url>http://heartofgold.endofinternet.org/</url>
+			</repository>
+	</repositories>
 
 	<dependencies>
 		<!-- Main -->
