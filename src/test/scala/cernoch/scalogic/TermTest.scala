@@ -7,99 +7,107 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TermTest extends Specification {
 
-  val num1a = Domain.int("num1")
-  val num1b = Domain.int("num1")
+	"Variable" should {
+		val domain = IntDom("d")
+		val x = Var(domain)
 
-  val num2 = Domain.int("num2")
+		"be equal for equal instances" in {
+			x must_== x
+		}
 
-  val dec = Domain.dec("dec")
+		"not be equal equality for different instances" in {
+			Var(domain) must_!= Var(domain)
+		}
 
-  val x = Var(dec)
-  val y = Var(dec)
-  
-  "Two different vars" should {
-    "not be equal" in {
-      x must_!= y
-    }
-  }
-  
-  val o = Val(1, num1a)
-  val o1 = Val(1, num1b)
-  val o2 = Val(1, num2)
-
-  "Two equal values" should {
-    "be equal if from the same domain" in {
-      o must_== o1
-    }
-
-    "not be equal if of different domain" in {
-      o must_!= o2
-    }
-  }
-
-  val fx = Fun("f",List(x), num2)
-
-  val fo = Fun("f",List(o), num2)
-
-  def sa(x: (Term,Term)*)
-  = (y:Term)
-    => x.foldLeft(Map[Term,Term]())
-        {(x,y) => x + y}.get(y)
-
-  val fy = Fun("f",List(y), num2)
-  val ffx = Fun("f", List(fx), num2)
-
-  "Substitution" should {
-    "replace a variable with the value" in {
-      x subst (x -> o) must_== o
-    }
-
-    "replace a variable in a function" in {
-      fx subst (x -> o) must_== fo
-    }
-
-    "replace whole function with a value" in {
-      fx subst (fx -> o) must_== o
-    }
-
-    "treat different vars differently" in {
-      fx subst (fy -> o) must_== fx
-    }
-
-    "avoid occurs check" in {
-      fx subst (x -> fx) must_== ffx
-    }
-  }
+		"has only 1 variable (itself)" in {
+			x.vars must_== List(x)
+		}
+	}
 
 
 
-  "All vars" should {
-    
-    "give a variable from a variable" in {
-      x.vars must_== List(x)
-    }
-    
-    "give an empty list from a constant" in {
-      o.vars must_== List()
-    }
+	"Value" should {
 
-    val gfxfy = Fun("g", List(fx,fy), num1a)
-    
-    "recurse deeply" in {
-      gfxfy.vars must_== List(x,y)
-    }
+		val o1a = Val(1,IntDom("d1"))
+		val o1b = Val(1,IntDom("d1"))
+		val o2  = Val(1,IntDom("d2"))
+		val o3  = Val(0.0,DoubleDom("d2"))
 
-    val gfxfx = Fun("g", List(fx,fx), num1a)
+		val vals = List(o1a,o1b,o2,o3)
 
-    "return a variable more than once if it occurs more than once" in {
-      gfxfx.vars must_== List(x,x)
-    }
-  }
+		"match numeric values in general" in {
+			(o1a match {
 
-	"Values" should {
+				case NumVal(value, numeric) => { import numeric._
+					value * (one + one)
+				}
+				case _ => null
 
-		"contain itself when using toString()" in {
-			o.toString().contains("1")
+			}) must_== 2
+		}
+
+		"match integral and decimal values" in {
+			vals.map(_ match {
+				case IntVal(value,numeric) => numeric.toInt(value)
+				case DecVal(value,decimal) => decimal.toInt(value)
+				case _ => null
+			}) must_== List(1,1,1,0)
+		}
+
+		"be equal if values come from the same domain" in {
+			o1a must_== o1b
+		}
+
+		"not be equal if of different domain" in {
+			o1a must_!= o2
+		}
+
+		"has no variables" in {
+			o2.vars must_== List()
+		}
+	}
+
+
+	"Functions" should {
+
+		"have many deeply nested variables" in {
+			Fun("g", List(fx,fx), dom).vars must_== List(x,x)
+		}
+	}
+
+
+	val dom = IntDom("d")
+
+	val x = Var(dom)
+	val o = Val(1, dom)
+	val fx = Fun("f",List(x),dom)
+	val fy = Fun("f",List(Var(dom)),dom)
+
+	"Substitution" should {
+		"replace a variable with the value" in {
+			x subst (x -> o) must_== o
+		}
+
+		"replace a variable in a function" in {
+			val fo = Fun("f", List(o), dom)
+
+			fx subst (x -> o) must_== fo
+		}
+
+		"replace whole function with a value" in {
+			fx subst (fx -> o) must_== o
+		}
+
+		"treat different vars differently" in {
+			val fy = Fun("f",List(Var(dom)), dom)
+
+			fx subst (fy -> o) must_== fx
+		}
+
+		"avoid occurs check" in {
+			val ffx = Fun("f", List(fx), dom)
+
+			fx subst (x -> fx) must_== ffx
 		}
 	}
 }

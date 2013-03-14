@@ -67,13 +67,7 @@ class Atom
 }
 
 object Atom {
-
-	def apply(p: String, a: List[Term])
-	: Atom = new Atom(p,a)
-
-	def apply(p: String, a: Term*)
-	: Atom = Atom(p, a.toList)
-
-	def unapply(a: Atom)
-	= Some((a.pred,a.args))
+	def apply(p: String, a: List[Term]) : Atom = new Atom(p,a)
+	def apply(p: String, a: Term*) : Atom = Atom(p, a.toList)
+	def unapply(a: Atom) = Some(a.pred,a.args)
 }

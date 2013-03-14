@@ -7,10 +7,10 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AtomTest extends Specification {
 
-  val num1a = Domain.int("num1")
-  val num1b = Domain.int("num1")
+  val num1a = IntDom("num1")
+  val num1b = IntDom("num1")
 
-  val num2 = Domain.int("num2")
+  val num2 = IntDom("num2")
 
   val x = Var(num1a)
   val y = Var(num1b)

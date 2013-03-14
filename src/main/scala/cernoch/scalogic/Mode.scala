@@ -10,9 +10,8 @@ class Mode(
 	extends Substituable[Mode]
 	with HasVariables {
 
-	def equivs = hook
-		.foldLeft(Set(atom)){
-			(a,b) => b.equivs(a)}
+	def equivs
+	= hook.foldLeft(Set(atom)){_ ++ _.equivs(Set(atom))}
 
 	def minSucc = hook
 		.map{_.minSucc}

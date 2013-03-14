@@ -28,7 +28,6 @@ class Labeler[A,L]
 	)
 }
 
-@Deprecated
 object Labeler {
 
 	def apply[L](i:Iterable[String])

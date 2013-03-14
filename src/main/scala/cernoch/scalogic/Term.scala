@@ -5,6 +5,7 @@ import tools.StringUtils._
 import tools.NameGen.Alphabet
 import collection.generic.Growable
 import math.{BigDecimal => BigDec, BigInt}
+import java.util.Date
 
 /**
  * Term is either a constant value, a function or a variable
@@ -97,10 +98,7 @@ final class Fun
 
 	override def subst
 	(dict: Term => Option[Term])
-	= dict(this).getOrElse({
-		val mapArgs = args.mapConserve{_.subst(dict)}
-		if (mapArgs eq args) this else Fun(name, mapArgs, dom)
-	})
+	= dict(this).getOrElse(mapArgs(dict))
 
 	def mapArgs
 	(dict: (Term) => Option[Term])
@@ -123,9 +121,10 @@ object Fun {
 /**
  * Constant value
  */
-class Val
-	(val value: Any, dom: Domain)
-	extends FFT(dom) {
+abstract class Val(dom: Domain) extends FFT(dom) {
+
+	type Type<: Any
+	val value : Type
 
 	private[scalogic] def addVarsTo
 	(buffer: Growable[Var]) {}
@@ -149,19 +148,75 @@ class Val
 }
 
 object Val {
-	def apply(v:String, d:Domain) = new Cat(v,d)
-	def apply(v:String, d:Domain with Ordering[String]) = new Ord(v,d)
+	def apply(v:String, d:Domain) = new Val(d) {
+		type Type = String
+		val value = v
+	}
 
-	def apply(v:Int,    d:Domain with Integral[Int]) = new Num(v,d)
-	def apply(v:Long,   d:Domain with Integral[Long]) = new Num(v,d)
-	def apply(v:BigInt, d:Domain with Integral[BigInt]) = new Num(v,d)
+	def apply(v:Int,    d:Domain with Integral[Int]) = new IntVal(v,d)
+	def apply(v:Long,   d:Domain with Integral[Long]) = new IntVal(v,d)
+	def apply(v:Date,   d:Domain with Integral[Date]) = new IntVal(v,d)
+	def apply(v:BigInt, d:Domain with Integral[BigInt]) = new IntVal(v,d)
 
-	def apply(v:Float,  d:Domain with Fractional[Float]) = new Dec(v,d)
-	def apply(v:Double, d:Domain with Fractional[Double]) = new Dec(v,d)
-	def apply(v:BigDec, d:Domain with Fractional[BigDec]) = new Dec(v,d)
+	def apply(v:Float,  d:Domain with Fractional[Float]) = new DecVal(v,d)
+	def apply(v:Double, d:Domain with Fractional[Double]) = new DecVal(v,d)
+	def apply(v:BigDec, d:Domain with Fractional[BigDec]) = new DecVal(v,d)
 }
 
-class Cat[T](s: T, d: Domain) extends Val(s,d) { def get = Option(s) }
-class Ord[T](s: T, override val dom: Domain with Ordering[T]) extends Cat[T](s,dom)
-class Num[T](s: T, override val dom: Domain with Integral[T]) extends Val(s,dom) { def get = Option(s) }
-class Dec[T](s: T, override val dom: Domain with Fractional[T]) extends Val(s,dom) { def get = Option(s) }
+
+object StrVal {
+
+	def toStr(o:Any) = if (o == null) null else o.toString
+
+	def unapply(v:Val)
+	= v.dom match {
+		case l:Iterable[_] => Some(toStr(v.value), l.view.map{toStr(_)})
+		case _             => Some(toStr(v.value), Iterable())
+	}
+}
+
+
+class IntVal[I]
+	(val value:I, override val
+	dom: Domain with Integral[I])
+	extends Val(dom) {
+	type Type = I
+}
+
+object IntVal {
+	def unapply(t:Val)
+	: Option[(I,Integral[I])] forSome {type I}
+	= t match {
+		case n:IntVal[_] => Some(n.value, n.dom)
+		case _ => None
+	}
+}
+
+class DecVal[F](val value:F, override val
+	dom: Domain with Fractional[F])
+	extends Val(dom) {
+	type Type = F
+}
+
+object DecVal {
+	def unapply(t:Val)
+	: Option[(F,Fractional[F])] forSome {type F}
+	= t match {
+		case n:DecVal[_] => Some(n.value, n.dom)
+		case _ => None
+	}
+}
+
+object NumVal {
+
+	private def cast(o:Any)
+	= o.asInstanceOf[Option[(T,Numeric[T])] forSome {type T}]
+
+	def unapply(t:Val)
+	: Option[(T,Numeric[T])] forSome {type T}
+	= t match {
+		case DecVal(v,t) => cast(Some(v,t))
+		case IntVal(v,t) => cast(Some(v,t))
+		case _ => None
+	}
+}

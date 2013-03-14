@@ -27,6 +27,7 @@ class ToolsTest extends Specification {
   }
 
 	"Subsets" should {
+
 		"list all subsets" in {
 			List(1,2).subsets.toSet must_==
 				Set(List(1), List(2), List(2,1))
@@ -34,6 +35,7 @@ class ToolsTest extends Specification {
 	}
 
 	"Equivalence relations" should {
+
 		"list all of them" in {
 			List(1,2).partitions
 				.map{_.map{_.toSet}.toSet}.toSet must_==
@@ -45,6 +47,7 @@ class ToolsTest extends Specification {
 	}
 
 	"Cartesian product" should {
+
 		"work well on lists" in {
 			List( List(1),List(2,3) ).cartesian must_==
 				List(List(1,2), List(1,3))

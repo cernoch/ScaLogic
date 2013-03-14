@@ -17,7 +17,7 @@
 	<properties>
 		<encoding>UTF-8</encoding>
 		<scala.version>2.10</scala.version>
-		<scalogic.version>0.9</scalogic.version>
+		<scalogic.version>0.10</scalogic.version>
 		<maven.compiler.source>1.5</maven.compiler.source>
 		<maven.compiler.target>1.5</maven.compiler.target>
 	</properties>
