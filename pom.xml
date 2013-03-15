@@ -28,7 +28,7 @@
 	</repository></distributionManagement>
 	<repositories>
 		<repository><id>heartofgold</id>
-			<url>http://heartofgold.endofinternet.org/</url>
+			<url>http://heartofgold.endofinternet.org/maven2</url>
 			</repository>
 	</repositories>
 
