@@ -69,6 +69,7 @@ object IntDom {
 			case _:Int => Some(d.name, d.asInstanceOf[Integral[Int]])
 			case _     => None
 		}
+		case _ => None
 	}
 }
 
@@ -110,6 +111,7 @@ object LongDom {
 			case _:Long       => Some(d.name,d.asInstanceOf[Integral[Long]])
 			case _            => None
 		}
+		case _ => None
 	}
 }
 
@@ -152,6 +154,7 @@ object BigIntDom {
 			case _:BigInt     => Some(d.name, d.asInstanceOf[Integral[BigInt]])
 			case _            => None
 		}
+		case _ => None
 	}
 }
 
@@ -230,6 +233,7 @@ object DateDom {
 			case _:Date       => Some(d.name, d.asInstanceOf[Integral[Date]])
 			case _            => None
 		}
+		case _ => None
 	}
 }
 
@@ -265,6 +269,7 @@ object FloatDom {
 			case _:Float       => Some(d.name, d.asInstanceOf[Fractional[Float]])
 			case _             => None
 		}
+		case _ => None
 	}
 }
 
@@ -301,6 +306,7 @@ object DoubleDom {
 			case _:Double      => Some(d.name,d.asInstanceOf[Fractional[Double]])
 			case _             => None
 		}
+		case _ => None
 	}
 }
 
@@ -340,5 +346,6 @@ object BigDecDom {
 			case _:BigDec      => Some(d.name, d.asInstanceOf[Fractional[BigDec]])
 			case _             => None
 		}
+		case _ => None
 	}
 }
