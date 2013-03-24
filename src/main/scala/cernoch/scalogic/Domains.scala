@@ -66,7 +66,7 @@ object IntDom {
 
 	def unapply(d:Domain) = d match {
 		case d: Integral[_] => d.zero match {
-			case _:Int => Some(d.name, d.asInstanceOf[Integral[Int]])
+			case _:Int => Some(d.name, d.asInstanceOf[Domain with Integral[Int]])
 			case _     => None
 		}
 		case _ => None
@@ -108,7 +108,7 @@ object LongDom {
 
 	def unapply(d:Domain) = d match {
 		case d: Integral[_] => d.zero match {
-			case _:Long       => Some(d.name,d.asInstanceOf[Integral[Long]])
+			case _:Long       => Some(d.name,d.asInstanceOf[Domain with Integral[Long]])
 			case _            => None
 		}
 		case _ => None
@@ -151,7 +151,7 @@ object BigIntDom {
 
 	def unapply(d:Domain) = d match {
 		case d:Integral[_]  => d.zero match {
-			case _:BigInt     => Some(d.name, d.asInstanceOf[Integral[BigInt]])
+			case _:BigInt     => Some(d.name, d.asInstanceOf[Domain with Integral[BigInt]])
 			case _            => None
 		}
 		case _ => None
@@ -230,7 +230,7 @@ object DateDom {
 
 	def unapply(d:Domain) = d match {
 		case d:Integral[_]  => d.zero match {
-			case _:Date       => Some(d.name, d.asInstanceOf[Integral[Date]])
+			case _:Date       => Some(d.name, d.asInstanceOf[Domain with Integral[Date]])
 			case _            => None
 		}
 		case _ => None
@@ -266,7 +266,7 @@ object FloatDom {
 
 	def unapply(d:Domain) = d match {
 		case d:Fractional[_] => d.zero match {
-			case _:Float       => Some(d.name, d.asInstanceOf[Fractional[Float]])
+			case _:Float       => Some(d.name, d.asInstanceOf[Domain with Fractional[Float]])
 			case _             => None
 		}
 		case _ => None
@@ -303,7 +303,7 @@ object DoubleDom {
 
 	def unapply(d:Domain) = d match {
 		case d:Fractional[_] => d.zero match {
-			case _:Double      => Some(d.name,d.asInstanceOf[Fractional[Double]])
+			case _:Double      => Some(d.name,d.asInstanceOf[Domain with Fractional[Double]])
 			case _             => None
 		}
 		case _ => None
@@ -343,7 +343,7 @@ object BigDecDom {
 
 	def unapply(d:Domain)  = d match {
 		case d:Fractional[_] => d.zero match {
-			case _:BigDec      => Some(d.name, d.asInstanceOf[Fractional[BigDec]])
+			case _:BigDec      => Some(d.name, d.asInstanceOf[Domain with Fractional[BigDec]])
 			case _             => None
 		}
 		case _ => None
