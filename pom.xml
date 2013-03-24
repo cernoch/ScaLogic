@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cernoch.scalogic</groupId>
 	<artifactId>scalogic_${scala.version}</artifactId>
-	<version>1.1-SNAPSHOT</version>
+	<version>1.1</version>
 	<name>${project.artifactId}</name>
 	<description>First-order logic representation in Scala</description>
 	<inceptionYear>2012</inceptionYear>
@@ -21,7 +21,7 @@
 	<scm><url>https://github.com/cernoch/ScaLogic</url>
 		<connection>scm:git:https://github.com/cernoch/ScaLogic.git</connection>
 		<developerConnection>scm:git:git@github.com:cernoch/ScaLogic.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>v1.1</tag>
 	</scm>
 	<distributionManagement><repository><id>heartofgold</id>
 		<url>scp://heartofgold.endofinternet.org:2222/srv/maven2</url>
